@@ -6,8 +6,9 @@ from app.database import Base
 class UserSession(Base):
     __tablename__ = "user_sessions"
     
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("usuarios.id"))
+    id_corporativo = Column(String(255))          # ID corporativo del usuario
     token_hash = Column(String(255), index=True)  # Para identificar/revocar el token
     ip_address = Column(String(45))               # IPv4 o IPv6
     user_agent = Column(String(255))              # "Chrome en Windows", etc.
