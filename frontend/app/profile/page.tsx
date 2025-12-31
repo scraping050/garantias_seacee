@@ -298,6 +298,7 @@ function UserManagement({ currentUser }: { currentUser: any }) {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [showPinModal, setShowPinModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [userToDelete, setUserToDelete] = useState<any>(null);
     const [editingUser, setEditingUser] = useState<any>(null);
     const [resettingPasswordUser, setResettingPasswordUser] = useState<any>(null);
@@ -364,7 +365,10 @@ function UserManagement({ currentUser }: { currentUser: any }) {
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white">Administración de Usuarios</h3>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Gestiona cuentas, contraseñas y accesos. Requiere privilegios de Admin/Director.</p>
                 </div>
-                <Button className="bg-purple-600 hover:bg-purple-700 text-white gap-2 rounded-xl">
+                <Button
+                    onClick={() => setShowCreateModal(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white gap-2 rounded-xl"
+                >
                     <Plus className="w-4 h-4" /> Nuevo Usuario
                 </Button>
             </div>
@@ -491,11 +495,12 @@ function UserManagement({ currentUser }: { currentUser: any }) {
                 onVerify={handlePinVerify}
                 title="Confirmar Eliminación"
                 description={userToDelete ? `Para eliminar al usuario ${userToDelete.nombre}, ingresa tu PIN de seguridad personal.` : ''}
-            />
+            </PinVerificationModal>
 
-            {editingUser && <EditUserDialog open={!!editingUser} user={editingUser} onClose={() => { setEditingUser(null); fetchUsers(); }} />}
-            {resettingPasswordUser && <ResetPasswordDialog open={!!resettingPasswordUser} user={resettingPasswordUser} onClose={() => setResettingPasswordUser(null)} />}
-        </div>
+            { showCreateModal && <CreateUserModal onClose={() => { setShowCreateModal(false); fetchUsers(); }} /> }
+    { editingUser && <EditUserDialog open={!!editingUser} user={editingUser} onClose={() => { setEditingUser(null); fetchUsers(); }} /> }
+    { resettingPasswordUser && <ResetPasswordDialog open={!!resettingPasswordUser} user={resettingPasswordUser} onClose={() => setResettingPasswordUser(null)} /> }
+        </div >
     );
 }
 
@@ -551,6 +556,168 @@ function ResetPasswordDialog({ open, user, onClose }: { open: boolean, user: any
                     <Button variant="outline" onClick={onClose}>Cancelar</Button>
                     <Button onClick={handleReset} disabled={loading}>{loading ? 'Guardando...' : 'Guardar'}</Button>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+function CreateUserModal({ onClose }: { onClose: () => void }) {
+    const [formData, setFormData] = useState({
+        id_corporativo: '',
+        nombre: '',
+        email: '',
+        password: '',
+        perfil: 'COLABORADOR',
+        job_title: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            await api.post('/api/auth/register', formData);
+            onClose(); // This will trigger fetchUsers
+        } catch (err: any) {
+            console.error('Error creating user:', err);
+            setError(err.response?.data?.detail || 'Error al crear el usuario');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+            <div
+                className="bg-white dark:bg-slate-800 rounded-2xl p-8 w-full max-w-lg animate-in zoom-in-95 shadow-2xl border border-slate-200 dark:border-slate-700"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Nuevo Usuario</h3>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            ID Corporativo *
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            minLength={3}
+                            maxLength={50}
+                            value={formData.id_corporativo}
+                            onChange={(e) => setFormData({ ...formData, id_corporativo: e.target.value })}
+                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            placeholder="admin, diana, etc."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            Nombre completo *
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            value={formData.nombre}
+                            onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            placeholder="Juan Pérez"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            Correo electrónico
+                        </label>
+                        <input
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            placeholder="usuario@mqs.com"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            Contraseña *
+                        </label>
+                        <input
+                            type="password"
+                            required
+                            minLength={3}
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            placeholder="Contraseña temporal"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            Cargo
+                        </label>
+                        <input
+                            type="text"
+                            value={formData.job_title}
+                            onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
+                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            placeholder="Analista, Director, etc."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                            Rol / Perfil *
+                        </label>
+                        <select
+                            required
+                            value={formData.perfil}
+                            onChange={(e) => setFormData({ ...formData, perfil: e.target.value })}
+                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        >
+                            <option value="COLABORADOR">Colaborador</option>
+                            <option value="DIRECTOR">Director</option>
+                        </select>
+                    </div>
+
+                    {error && (
+                        <div className="bg-red-500/20 border border-red-500/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-red-500 shrink-0"></div>
+                            {error}
+                        </div>
+                    )}
+
+                    <div className="flex justify-end gap-3 pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onClose}
+                            className="rounded-xl"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            type="submit"
+                            disabled={loading}
+                            className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-2"
+                        >
+                            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                            {loading ? 'Creando...' : 'Crear Usuario'}
+                        </Button>
+                    </div>
+                </form>
             </div>
         </div>
     );
