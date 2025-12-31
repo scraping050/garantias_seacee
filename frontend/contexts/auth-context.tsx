@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const login = async (username: string, password: string) => {
-        const response = await api.post('https://back.mcqs-jcq.cloud/api/auth/login', { username, password });
+        const response = await api.post('/api/auth/login', { username, password });
         const { access_token, user: userData } = response.data;
 
         setToken(access_token);
