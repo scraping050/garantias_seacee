@@ -4,6 +4,7 @@ Authentication router for user login, registration, and PIN verification.
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 import hashlib
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.database import get_db
 from app.models.user import User, UserRole
 from app.models.session import UserSession
@@ -108,7 +109,12 @@ def login(
     user_agent = request.headers.get('user-agent')
     ip_address = request.client.host
     
+    # Get next available ID (since AUTO_INCREMENT is not set in DB)
+    max_id_result = db.query(func.max(UserSession.id)).scalar()
+    next_id = (max_id_result or 0) + 1
+    
     new_session = UserSession(
+        id=next_id,  # Manually set ID
         user_id=user.id,
         token_hash=hashlib.sha256(access_token.encode()).hexdigest(), # Store token hash
         ip_address=ip_address,
