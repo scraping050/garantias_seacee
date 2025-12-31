@@ -13,6 +13,7 @@ export default function ProfilePage() {
     const [user, setUser] = useState<any>(null);
     const [activeSection, setActiveSection] = useState<'info' | 'security' | 'admin'>('info');
     const [loading, setLoading] = useState(true);
+    const [showDeleteAvatarModal, setShowDeleteAvatarModal] = useState(false);
 
     useEffect(() => {
         // Load user from local storage
@@ -49,14 +50,18 @@ export default function ProfilePage() {
         }
     };
 
-    const handleDeleteAvatar = async () => {
-        if (!confirm('¿Eliminar foto de perfil?')) return;
+    const handleDeleteAvatarClick = () => {
+        setShowDeleteAvatarModal(true);
+    };
+
+    const confirmDeleteAvatar = async () => {
         try {
             await api.delete('/api/users/me/avatar');
             const updatedUser = { ...user, avatar_url: null };
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
             window.dispatchEvent(new Event('userUpdated'));
+            setShowDeleteAvatarModal(false);
         } catch (error) {
             console.error('Error deleting avatar:', error);
         }
@@ -108,7 +113,7 @@ export default function ProfilePage() {
                                     </button>
                                     {user?.avatar_url && (
                                         <button
-                                            onClick={handleDeleteAvatar}
+                                            onClick={handleDeleteAvatarClick}
                                             className="absolute bottom-1 left-1 p-2 bg-red-600 rounded-full text-white shadow-lg border-2 border-white dark:border-slate-800 hover:bg-red-700 transition-colors transform hover:scale-105"
                                             title="Eliminar foto"
                                         >
@@ -194,6 +199,13 @@ export default function ProfilePage() {
                     </div>
                 </div>
             </div>
+            {showDeleteAvatarModal && (
+                <DeleteAvatarModal
+                    isOpen={showDeleteAvatarModal}
+                    onClose={() => setShowDeleteAvatarModal(false)}
+                    onConfirm={confirmDeleteAvatar}
+                />
+            )}
         </div>
     );
 }
@@ -225,7 +237,7 @@ function PersonalInfoForm({ user, setUser }: any) {
                 nombre: formData.nombre,
                 email: formData.email,
                 job_title: formData.job_title,
-                // username not editable? 
+                // username not editable?
                 // phone not in API?
             });
             const newUser = { ...user, ...response.data };
@@ -1082,6 +1094,43 @@ function PinChangeForm() {
             >
                 {loading ? 'Actualizando...' : 'Actualizar PIN'}
             </Button>
+        </div>
+    );
+}
+
+function DeleteAvatarModal({ isOpen, onClose, onConfirm }: any) {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-100 dark:border-slate-700 scale-100 animate-in zoom-in-95 duration-200">
+                <div className="text-center mb-6">
+                    <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Trash2 className="w-8 h-8 text-red-600 dark:text-red-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                        ¿Eliminar foto?
+                    </h3>
+                    <p className="text-slate-500 dark:text-slate-400">
+                        ¿Estás seguro de que quieres eliminar tu foto de perfil actual? Esta acción no se puede deshacer.
+                    </p>
+                </div>
+
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600 transition-colors font-medium"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all transform hover:scale-[1.02] font-medium"
+                    >
+                        Eliminar
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
