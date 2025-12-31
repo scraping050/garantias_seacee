@@ -98,13 +98,13 @@ export default function BusquedaLicitacionesPage() {
 
                 {/* Grid */}
                 {loading ? (
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {[...Array(6)].map((_, i) => (
                             <div key={i} className="h-64 rounded-2xl bg-slate-200/50 animate-pulse dark:bg-slate-800/50"></div>
                         ))}
                     </div>
                 ) : licitaciones.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
                         {licitaciones.map((lic) => (
                             <LicitacionCard key={lic.id_convocatoria} licitacion={lic} />
                         ))}

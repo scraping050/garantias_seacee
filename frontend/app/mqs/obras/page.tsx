@@ -110,7 +110,7 @@ export default function ObrasPage() {
         return (
             <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                    <i className="fas fa-spinner fa-spin text-4xl text-[#0F2C4A] mb-4"></i>
+                    <i className="fas fa-spinner fa-spin text-2xl sm:text-3xl lg:text-4xl text-[#0F2C4A] mb-4"></i>
                     <p className="text-gray-600">Cargando obras...</p>
                 </div>
             </div>
@@ -152,7 +152,7 @@ export default function ObrasPage() {
                 </div>
 
                 {/* Resumen KPIs Cards Premium */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden group hover:shadow-lg transition-all duration-300">
                         <div className="absolute right-0 top-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/20 rounded-bl-full -mr-8 -mt-8 opacity-50 group-hover:scale-110 transition-transform duration-500"></div>
                         <div className="relative z-10 flex items-center gap-5">
@@ -185,7 +185,7 @@ export default function ObrasPage() {
                 {/* Tabla de Licitaciones Premium */}
                 {/* File Explorer View */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
-                    <div className="px-8 py-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 flex items-center justify-between">
+                    <div className="px-4 sm:px-6 lg:px-8 py-6 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 flex items-center justify-between">
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                             <i className="fas fa-folder-open text-yellow-500"></i>
                             Documentación del Proyecto
@@ -199,7 +199,7 @@ export default function ObrasPage() {
                 {/* Miembros del Consorcio Premium */}
                 {selectedConsorcio.miembros && selectedConsorcio.miembros.length > 0 && (
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="px-8 py-6 border-b border-gray-100 bg-gray-50/50">
+                        <div className="px-4 sm:px-6 lg:px-8 py-6 border-b border-gray-100 bg-gray-50/50">
                             <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                                 <i className="fas fa-users text-purple-500"></i>
                                 Estructura del Consorcio
@@ -237,7 +237,7 @@ export default function ObrasPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Main Premium */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6 lg:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-50/50 dark:bg-yellow-900/20 rounded-full -mr-16 -mt-16 pointer-events-none blur-3xl"></div>
 
                 <div className="relative z-10 w-full md:w-auto">
@@ -279,7 +279,7 @@ export default function ObrasPage() {
             </div>
 
             {/* Grid de Consorcios Premium */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 {filteredConsorcios.map((consorcio, idx) => (
                     <div
                         key={idx}
@@ -336,7 +336,7 @@ export default function ObrasPage() {
             {consorcios.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
                     <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6 animate-pulse">
-                        <i className="fas fa-search text-4xl text-gray-300"></i>
+                        <i className="fas fa-search text-2xl sm:text-3xl lg:text-4xl text-gray-300"></i>
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No se encontraron consorcios</h3>
                     <p className="text-gray-500 text-center max-w-md mx-auto">

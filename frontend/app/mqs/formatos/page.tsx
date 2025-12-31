@@ -201,7 +201,7 @@ export default function FormatosPage() {
         </div>
 
         {/* Stats Cards con diseño glass sutil */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-5 transition-transform hover:scale-[1.01] duration-300">
                 <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center shadow-inner">
                     <i className="fas fa-file-alt text-blue-600 dark:text-blue-400 text-2xl"></i>
@@ -226,13 +226,13 @@ export default function FormatosPage() {
         {formatos.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-dashed border-gray-300 dark:border-gray-600 p-16 text-center">
                 <div className="w-20 h-20 bg-gray-50 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <i className="fas fa-folder-open text-3xl text-gray-400 dark:text-gray-500"></i>
+                    <i className="fas fa-folder-open text-xl sm:text-2xl lg:text-3xl text-gray-400 dark:text-gray-500"></i>
                 </div>
                 <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No hay formatos disponibles</h3>
                 <p className="text-gray-500 dark:text-gray-400">Sube un nuevo archivo para comenzar</p>
             </div>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {formatos.map((formato) => (
                     <div
                         key={formato.id}
@@ -241,7 +241,7 @@ export default function FormatosPage() {
                         <div className="p-6">
                             <div className="flex items-start justify-between mb-6">
                                 <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 rounded-2xl flex items-center justify-center shadow-sm border border-blue-50 dark:border-blue-900/30 group-hover:scale-110 transition-transform duration-300">
-                                    <i className={`fas ${formato.icon} text-3xl text-blue-600 dark:text-blue-400`}></i>
+                                    <i className={`fas ${formato.icon} text-xl sm:text-2xl lg:text-3xl text-blue-600 dark:text-blue-400`}></i>
                                 </div>
                                 <span className="text-[10px] font-bold tracking-wider text-blue-600 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 px-2.5 py-1 rounded-full uppercase border border-blue-100 dark:border-blue-800">
                                     {formato.extension.toUpperCase().replace('.', '')}
@@ -257,7 +257,7 @@ export default function FormatosPage() {
                                 {formatFileSize(formato.tamano)}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3">
                                 <button
                                     onClick={() => handleDownload(formato.nombreArchivo, formato.nombreOriginal || formato.nombreArchivo)}
                                     className="cursor-pointer bg-[#0F2C4A] dark:bg-blue-600 rounded-xl text-white font-semibold transition-all duration-300 
@@ -308,7 +308,7 @@ export default function FormatosPage() {
                     </div>
 
                     <div className="p-8">
-                        <p className="text-gray-600 dark:text-gray-300 text-center mb-8 leading-relaxed">
+                        <p className="text-gray-600 dark:text-gray-300 text-center mb-6 sm:mb-8 leading-relaxed">
                             Esta acción eliminará permanentemente el archivo <br />
                             <span className="font-semibold text-gray-900 dark:text-white">"{formatoToDelete.nombre}"</span>.<br />
                             <span className="text-red-500 dark:text-red-400 text-sm mt-1 block">Esta acción no se puede deshacer.</span>
@@ -375,7 +375,7 @@ export default function FormatosPage() {
 
                 <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg relative z-10 overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100 dark:border-gray-700">
                     {/* Header Brand Gradient */}
-                    <div className="bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 px-8 py-5 border-b border-blue-50 dark:border-blue-900/30 flex items-center justify-between">
+                    <div className="bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800 px-4 sm:px-6 lg:px-8 py-5 border-b border-blue-50 dark:border-blue-900/30 flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-[#0F2C4A] dark:bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20 text-white">
                                 <i className="fas fa-cloud-upload-alt text-xl"></i>
@@ -394,7 +394,7 @@ export default function FormatosPage() {
                     </div>
 
                     <div className="p-8">
-                        <div className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 ${selectedFile
+                        <div className={`relative border-2 border-dashed rounded-2xl p-4 sm:p-6 lg:p-8 text-center transition-all duration-300 ${selectedFile
                             ? 'border-green-400 bg-green-50/30 dark:bg-green-900/20'
                             : 'border-gray-300 dark:border-gray-600 hover:border-[#0F2C4A] dark:hover:border-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700/30'
                             }`}>

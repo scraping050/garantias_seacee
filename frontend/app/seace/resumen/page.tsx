@@ -51,7 +51,7 @@ export default function SEACEResumenPage() {
         return (
             <div className="flex items-center justify-center h-full">
                 <div className="text-center">
-                    <i className="fas fa-spinner fa-spin text-4xl text-[#0F2C4A] mb-4"></i>
+                    <i className="fas fa-spinner fa-spin text-2xl sm:text-3xl lg:text-4xl text-[#0F2C4A] mb-4"></i>
                     <p className="text-gray-600">Cargando datos SEACE...</p>
                 </div>
             </div>
@@ -61,13 +61,13 @@ export default function SEACEResumenPage() {
     return (
         <div className="fade-in">
             {/* Header Premium */}
-            <div className="mb-8 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 md:p-10 shadow-xl text-white border border-transparent dark:border-gray-700">
+            <div className="mb-6 sm:mb-8 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] dark:from-gray-900 dark:to-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-xl text-white border border-transparent dark:border-gray-700">
                 <div className="flex items-center gap-4 mb-3">
                     <div className="w-14 h-14 bg-white/20 dark:bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                        <i className="fas fa-gauge-high text-3xl text-white drop-shadow-lg"></i>
+                        <i className="fas fa-gauge-high text-xl sm:text-2xl lg:text-3xl text-white drop-shadow-lg"></i>
                     </div>
                     <div className="flex-1">
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tight">
+                        <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-tight">
                             Resumen Ejecutivo SEACE
                         </h1>
                     </div>
@@ -91,7 +91,7 @@ export default function SEACEResumenPage() {
             )}
 
             {/* KPI Cards Premium */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
                 <KPICard
                     value={`S/ ${(kpis?.total_adjudicado / 1000000).toFixed(1)}M`}
                     label="Monto Adjudicado"
@@ -124,32 +124,34 @@ export default function SEACEResumenPage() {
                 Últimos Movimientos
             </h4>
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                <table className="w-full">
-                    <thead className="bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] dark:from-gray-900 dark:to-gray-800 text-white">
-                        <tr>
-                            <th className="px-6 py-4 text-left text-sm font-bold tracking-wide">Nomenclatura</th>
-                            <th className="px-6 py-4 text-left text-sm font-bold tracking-wide">Entidad</th>
-                            <th className="px-6 py-4 text-left text-sm font-bold tracking-wide">Monto</th>
-                            <th className="px-6 py-4 text-left text-sm font-bold tracking-wide">Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {licitaciones.map((lic, idx) => (
-                            <tr key={idx} className="border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200">
-                                <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{lic.nomenclatura}</td>
-                                <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{lic.comprador}</td>
-                                <td className="px-6 py-4 text-sm font-bold text-[#0F2C4A] dark:text-blue-400">
-                                    S/ {lic.monto_estimado?.toLocaleString()}
-                                </td>
-                                <td className="px-6 py-4 text-sm">
-                                    <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(lic.estado_proceso)}`}>
-                                        {lic.estado_proceso}
-                                    </span>
-                                </td>
+                <div className="overflow-x-auto">
+                    <table className="w-full min-w-[600px]">
+                        <thead className="bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] dark:from-gray-900 dark:to-gray-800 text-white">
+                            <tr>
+                                <th className="px-6 py-4 text-left text-sm font-bold tracking-wide">Nomenclatura</th>
+                                <th className="px-6 py-4 text-left text-sm font-bold tracking-wide">Entidad</th>
+                                <th className="px-6 py-4 text-left text-sm font-bold tracking-wide">Monto</th>
+                                <th className="px-6 py-4 text-left text-sm font-bold tracking-wide">Estado</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {licitaciones.map((lic, idx) => (
+                                <tr key={idx} className="border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                    <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">{lic.nomenclatura}</td>
+                                    <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{lic.comprador}</td>
+                                    <td className="px-6 py-4 text-sm font-bold text-[#0F2C4A] dark:text-blue-400">
+                                        S/ {lic.monto_estimado?.toLocaleString()}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm">
+                                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(lic.estado_proceso)}`}>
+                                            {lic.estado_proceso}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );

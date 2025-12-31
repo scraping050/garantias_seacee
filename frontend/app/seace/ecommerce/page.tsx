@@ -110,7 +110,7 @@ export default function EcommerceDashboardPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 dark:bg-[#0b122b] p-8 flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 dark:bg-[#0b122b] p-4 sm:p-6 lg:p-8 flex items-center justify-center">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
             </div>
         );
@@ -141,7 +141,7 @@ export default function EcommerceDashboardPage() {
                 </div>
 
                 {/* --- ROW 1: Metrics + Radial Distribution --- */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
                     <div className="lg:col-span-8">
                         <EcommerceMetrics
                             licitaciones={data.kpis?.total_licitaciones}
@@ -168,7 +168,7 @@ export default function EcommerceDashboardPage() {
                 </div>
 
                 {/* --- ROW 4: Department Ranking + Financial Entities --- */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
                     <div className="lg:col-span-4">
                         <DepartmentRanking data={data.departmentRanking} />
                     </div>

@@ -58,7 +58,7 @@ export default function InformesPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Premium */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 lg:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50/50 dark:bg-indigo-900/20 rounded-full -mr-16 -mt-16 pointer-events-none blur-3xl"></div>
 
                 <div className="relative z-10">
@@ -93,12 +93,12 @@ export default function InformesPage() {
             </div>
 
             {/* Report Type Selector Premium */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
                     <span className="w-1 h-8 bg-indigo-500 dark:bg-indigo-400 rounded-full"></span>
                     Selecciona un Tipo de Informe
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
                     <ReportTypeCard
                         icon="fa-chart-bar"
                         title="General"
@@ -131,7 +131,7 @@ export default function InformesPage() {
             </div>
 
             {/* Stats Overview Premium */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard
                     icon="fa-file-invoice-dollar"
                     title="Total Facturado"
@@ -171,9 +171,9 @@ export default function InformesPage() {
             </div>
 
             {/* Charts Section Premium (Placeholders) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 {/* Chart 1 */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center justify-between">
                         <span className="flex items-center gap-2">
                             <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400"><i className="fas fa-chart-area"></i></div>
@@ -192,7 +192,7 @@ export default function InformesPage() {
                 </div>
 
                 {/* Chart 2 */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center justify-between">
                         <span className="flex items-center gap-2">
                             <div className="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg text-green-600 dark:text-green-400"><i className="fas fa-chart-pie"></i></div>
@@ -223,16 +223,16 @@ export default function InformesPage() {
                     <table className="w-full">
                         <thead className="bg-gray-50/50 dark:bg-gray-700/50">
                             <tr>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tipo de Informe</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Período</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Generado</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
-                                <th className="px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tipo de Informe</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Período</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Generado</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                             <tr className="hover:bg-indigo-50/30 dark:hover:bg-indigo-900/10 transition-colors group">
-                                <td className="px-8 py-5">
+                                <td className="px-4 sm:px-6 lg:px-8 py-5">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-900/50">
                                             <i className="fas fa-chart-bar"></i>
@@ -240,15 +240,15 @@ export default function InformesPage() {
                                         <span className="text-sm font-bold text-gray-900 dark:text-white">Informe General</span>
                                     </div>
                                 </td>
-                                <td className="px-8 py-5 text-sm text-gray-600 dark:text-gray-300 font-medium">Diciembre 2024</td>
-                                <td className="px-8 py-5 text-sm text-gray-500 dark:text-gray-400">18 Dic 2024 - 08:30</td>
-                                <td className="px-8 py-5">
+                                <td className="px-4 sm:px-6 lg:px-8 py-5 text-sm text-gray-600 dark:text-gray-300 font-medium">Diciembre 2024</td>
+                                <td className="px-4 sm:px-6 lg:px-8 py-5 text-sm text-gray-500 dark:text-gray-400">18 Dic 2024 - 08:30</td>
+                                <td className="px-4 sm:px-6 lg:px-8 py-5">
                                     <span className="px-3 py-1 text-xs font-bold rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-100 dark:border-green-900/50 flex items-center gap-1.5 w-fit">
                                         <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
                                         Completado
                                     </span>
                                 </td>
-                                <td className="px-8 py-5 text-right">
+                                <td className="px-4 sm:px-6 lg:px-8 py-5 text-right">
                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all" title="Ver">
                                             <i className="fas fa-eye"></i>

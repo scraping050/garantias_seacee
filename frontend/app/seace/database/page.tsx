@@ -72,14 +72,14 @@ export default function SEACEDatabasePage() {
     return (
         <div className="fade-in">
             {/* Header Premium */}
-            <div className="mb-8 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] dark:from-gray-900 dark:to-gray-800 rounded-2xl p-8 md:p-10 shadow-xl text-white border border-transparent dark:border-gray-700">
+            <div className="mb-6 sm:mb-8 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] dark:from-gray-900 dark:to-gray-800 rounded-2xl p-4 sm:p-6 md:p-10 shadow-xl text-white border border-transparent dark:border-gray-700">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 bg-white/20 dark:bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                            <i className="fas fa-database text-3xl text-white drop-shadow-lg"></i>
+                    <div className="flex items-center gap-2 sm:gap-4">
+                        <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white/20 dark:bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                            <i className="fas fa-database text-xl sm:text-3xl text-white drop-shadow-lg"></i>
                         </div>
                         <div>
-                            <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-1">
+                            <h1 className="text-xl sm:text-2xl md:text-4xl font-black tracking-tight mb-1">
                                 Base de Datos SEACE
                             </h1>
                             <p className="text-blue-100 dark:text-gray-300 text-base">
@@ -91,7 +91,7 @@ export default function SEACEDatabasePage() {
             </div>
 
             {/* Filters Panel Premium */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-4 sm:p-6 mb-6 sm:mb-8">
                 <h3 className="text-xl font-bold text-[#0F2C4A] dark:text-white mb-5 flex items-center gap-2">
                     <i className="fas fa-filter text-blue-600 dark:text-blue-400"></i>
                     Filtros de Búsqueda
@@ -163,10 +163,10 @@ export default function SEACEDatabasePage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <button
                         onClick={handleSearch}
-                        className="group relative overflow-hidden px-8 py-3 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] text-white rounded-xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+                        className="group relative overflow-hidden px-6 sm:px-8 py-3 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] text-white rounded-xl font-bold hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         <i className="fas fa-search relative z-10 group-hover:scale-110 transition-transform"></i>
@@ -174,14 +174,14 @@ export default function SEACEDatabasePage() {
                     </button>
                     <button
                         onClick={handleClearFilters}
-                        className="group px-8 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+                        className="group px-6 sm:px-8 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-bold hover:bg-gray-200 dark:hover:bg-gray-600 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
                     >
                         <i className="fas fa-times group-hover:rotate-90 transition-transform duration-300"></i>
                         <span>Limpiar</span>
                     </button>
 
                     {/* Items per page */}
-                    <div className="ml-auto flex items-center gap-2">
+                    <div className="sm:ml-auto flex items-center gap-2">
                         <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                             Mostrar:
                         </label>
@@ -267,12 +267,12 @@ export default function SEACEDatabasePage() {
                     </div>
 
                     {/* Pagination */}
-                    <div className="mt-6 flex justify-between items-center">
+                    <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <div className="text-sm text-gray-600 dark:text-gray-400">
                             Mostrando {((page - 1) * limit) + 1} - {Math.min(page * limit, total)} de {total.toLocaleString()} licitaciones
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2 justify-center">
                             <button
                                 onClick={() => setPage(1)}
                                 disabled={page === 1}
@@ -283,20 +283,20 @@ export default function SEACEDatabasePage() {
                             <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                className="px-6 py-2.5 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] text-white rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-bold flex items-center gap-2"
+                                className="px-4 sm:px-6 py-2.5 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] text-white rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-bold flex items-center gap-2"
                             >
-                                <i className="fas fa-chevron-left text-sm"></i> Anterior
+                                <i className="fas fa-chevron-left text-sm"></i> <span className="hidden sm:inline">Anterior</span>
                             </button>
-                            <span className="px-6 py-2.5 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                                <i className="fas fa-file-alt text-blue-600 dark:text-blue-400"></i>
-                                Página {page} de {Math.ceil(total / limit)}
+                            <span className="px-3 sm:px-6 py-2.5 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-700 dark:to-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2 text-sm sm:text-base">
+                                <i className="fas fa-file-alt text-blue-600 dark:text-blue-400 hidden sm:inline"></i>
+                                {page}/{Math.ceil(total / limit)}
                             </span>
                             <button
                                 onClick={() => setPage(p => p + 1)}
                                 disabled={page >= Math.ceil(total / limit)}
-                                className="px-6 py-2.5 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] text-white rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-bold flex items-center gap-2"
+                                className="px-4 sm:px-6 py-2.5 bg-gradient-to-r from-[#0F2C4A] to-[#1a4b7a] text-white rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 font-bold flex items-center gap-2"
                             >
-                                Siguiente <i className="fas fa-chevron-right text-sm"></i>
+                                <span className="hidden sm:inline">Siguiente</span> <i className="fas fa-chevron-right text-sm"></i>
                             </button>
                             <button
                                 onClick={() => setPage(Math.ceil(total / limit))}

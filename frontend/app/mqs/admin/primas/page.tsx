@@ -118,7 +118,7 @@ export default function PrimasPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Premium */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 lg:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-50/50 dark:bg-teal-900/20 rounded-full -mr-16 -mt-16 pointer-events-none blur-3xl"></div>
 
                 <div className="relative z-10">
@@ -139,7 +139,7 @@ export default function PrimasPage() {
             </div>
 
             {/* Stats Cards Premium */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard
                     icon="fa-hand-holding-dollar"
                     title="Total Primas"
@@ -198,19 +198,19 @@ export default function PrimasPage() {
                     <table className="w-full">
                         <thead className="bg-gray-50/50 dark:bg-gray-700/50">
                             <tr>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">N° Prima</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aseguradora</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Póliza</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Monto</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vencimiento</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
-                                <th className="px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">N° Prima</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Aseguradora</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Póliza</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Monto</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vencimiento</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                             {primas.map((prima) => (
                                 <tr key={prima.id} className="hover:bg-teal-50/30 dark:hover:bg-teal-900/10 transition-colors group">
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <div className="flex flex-col">
                                             <span className="font-mono text-sm font-semibold text-gray-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                                                 {prima.id}
@@ -222,25 +222,25 @@ export default function PrimasPage() {
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <div className="text-sm font-medium text-gray-900 dark:text-white">{prima.aseguradora}</div>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className="text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{prima.poliza}</span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className="text-sm font-bold text-gray-900 dark:text-white">{prima.monto}</span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">{prima.vencimiento}</span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className={`px-3 py-1 text-xs font-bold rounded-full border flex items-center gap-1.5 w-fit ${getStatusColor(prima.estado)}`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(prima.estado)}`}></span>
                                             {prima.estado}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-5 text-right">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5 text-right">
                                         <div className="flex items-center justify-end gap-2 text-right">
                                             <button
                                                 onClick={() => handleVerify(prima.id)}

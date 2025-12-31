@@ -130,7 +130,7 @@ export default function EntregasPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Premium */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6 lg:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50/50 dark:bg-blue-900/20 rounded-full -mr-16 -mt-16 pointer-events-none blur-3xl"></div>
 
                 <div className="relative z-10">
@@ -151,7 +151,7 @@ export default function EntregasPage() {
             </div>
 
             {/* Stats Cards Premium */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard
                     icon="fa-truck-fast"
                     title="En Tránsito"
@@ -210,18 +210,18 @@ export default function EntregasPage() {
                     <table className="w-full">
                         <thead className="bg-gray-50/50 dark:bg-gray-900/50">
                             <tr>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">N° Guía</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Destinatario</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dirección</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fecha Envío</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
-                                <th className="px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">N° Guía</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Destinatario</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Dirección</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fecha Envío</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                             {entregas.map((entrega) => (
                                 <tr key={entrega.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <div className="flex flex-col">
                                             <span className="font-mono text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                                 {entrega.id}
@@ -233,26 +233,26 @@ export default function EntregasPage() {
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <div className="text-sm font-medium text-gray-900 dark:text-white">{entrega.destinatario}</div>
                                         <div className="text-xs text-gray-400">RUC: {entrega.ruc}</div>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
                                             <i className="fas fa-map-pin text-red-400 text-xs"></i>
                                             <span className="text-sm">{entrega.direccion}</span>
                                         </div>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">{entrega.fecha}</span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className={`px-3 py-1 text-xs font-bold rounded-full border flex items-center gap-1.5 w-fit ${getStatusColor(entrega.estado)}`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(entrega.estado)}`}></span>
                                             {entrega.estado}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-5 text-right">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5 text-right">
                                         <div className="flex items-center justify-end gap-2">
                                             <button
                                                 onClick={() => handleVerify(entrega.id)}

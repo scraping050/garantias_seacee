@@ -224,7 +224,7 @@ export default function ETLPage() {
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-4 gap-4">
                     <div className={`bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm transition-all ${getCurrentStepClass(1)}`}>
                         <div className="text-2xl mb-2">📥</div>
                         <h4 className="font-bold text-sm text-[#0F2C4A] dark:text-white mb-1">1. Descarga</h4>

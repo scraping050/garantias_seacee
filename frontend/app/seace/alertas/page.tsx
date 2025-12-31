@@ -98,7 +98,7 @@ export default function AlertasPage() {
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <div className="bg-white dark:bg-[#111c44] rounded-xl p-4 border border-slate-200 dark:border-slate-700">
                         <div className="flex items-center justify-between">
                             <div>
@@ -222,7 +222,7 @@ export default function AlertasPage() {
                                 >
                                     <div className="flex gap-4">
                                         {/* Icon */}
-                                        <div className="flex-shrink-0 text-3xl">
+                                        <div className="flex-shrink-0 text-xl sm:text-2xl lg:text-3xl">
                                             {getTypeIcon(notification.type)}
                                         </div>
 

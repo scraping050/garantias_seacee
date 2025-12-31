@@ -134,7 +134,7 @@ export default function FacturasPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Premium */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 lg:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-rose-50/50 dark:bg-rose-900/20 rounded-full -mr-16 -mt-16 pointer-events-none blur-3xl"></div>
 
                 <div className="relative z-10">
@@ -155,7 +155,7 @@ export default function FacturasPage() {
             </div>
 
             {/* Stats Cards Premium */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard
                     icon="fa-file-invoice-dollar"
                     title="Total Facturas"
@@ -214,49 +214,49 @@ export default function FacturasPage() {
                     <table className="w-full">
                         <thead className="bg-gray-50/50 dark:bg-gray-700/50">
                             <tr>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">N° Factura</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cliente/Proveedor</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tipo</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Monto</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fecha Emisión</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vencimiento</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
-                                <th className="px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">N° Factura</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cliente/Proveedor</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Tipo</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Monto</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fecha Emisión</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vencimiento</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {facturas.map((factura) => (
                                 <tr key={factura.id} className="hover:bg-rose-50/30 dark:hover:bg-rose-900/10 transition-colors group">
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className="font-mono text-sm font-semibold text-gray-900 dark:text-white group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
                                             {factura.id}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <div className="text-sm font-medium text-gray-900 dark:text-white">{factura.cliente}</div>
                                         <div className="text-xs text-gray-400">RUC: {factura.ruc}</div>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className={`px-2 py-1 text-xs rounded border font-medium capitalize ${getTypeColor(factura.tipo)}`}>
                                             {factura.tipo}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className="text-sm font-bold text-gray-900 dark:text-white">{factura.monto}</span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">{factura.fechaEmision}</span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className="text-sm text-gray-500 dark:text-gray-400">{factura.vencimiento}</span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5">
                                         <span className={`px-3 py-1 text-xs font-bold rounded-full border flex items-center gap-1.5 w-fit capitalize ${getStatusColor(factura.estado)}`}>
                                             <span className={`w-1.5 h-1.5 rounded-full ${getStatusDot(factura.estado)}`}></span>
                                             {factura.estado}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-5 text-right">
+                                    <td className="px-4 sm:px-6 lg:px-8 py-5 text-right">
                                         <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all" title="Ver detalles">
                                                 <i className="fas fa-eye"></i>

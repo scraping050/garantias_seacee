@@ -16,7 +16,6 @@ export default function MQSLayout({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const userData = localStorage.getItem('user');
-
         if (userData) {
             setUser(JSON.parse(userData));
         }
@@ -49,36 +48,33 @@ export default function MQSLayout({ children }: { children: React.ReactNode }) {
         setMobileMenuOpen(false);
     }, [pathname]);
 
-
-
     const isActive = (path: string) => pathname === path;
     const isAdmin = user?.role === 'admin';
     const getDelay = (index: number) => `${index * 50}ms`;
 
     return (
-        <div className={`flex w-full h-screen overflow-hidden bg-[#F8FAFC] dark:bg-[#0f172a] transition-colors duration-500`}>
+        <div className="block lg:flex w-full h-screen overflow-hidden bg-white dark:bg-gray-900 transition-colors duration-500">
             {/* Overlay Móvil Glassmorphism */}
-            <div
-                className={`
-                    fixed inset-0 z-40 md:hidden transition-all duration-500 ease-in-out
-                    ${mobileMenuOpen ? 'bg-[#0F2C4A]/40 backdrop-blur-md opacity-100' : 'opacity-0 pointer-events-none'}
-                `}
-                onClick={() => setMobileMenuOpen(false)}
-            ></div>
+            {mobileMenuOpen && (
+                <div
+                    className="fixed inset-0 z-40 lg:hidden bg-black/20 backdrop-blur-sm transition-all duration-500 ease-in-out"
+                    onClick={() => setMobileMenuOpen(false)}
+                ></div>
+            )}
 
             {/* Sidebar Premium */}
             <aside
                 className={`
-                    fixed md:static inset-y-0 left-0 z-50
-                    text-white flex flex-col flex-shrink-0 
-                    transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl md:shadow-xl
+                    fixed lg:static inset-y-0 left-0 z-50
+                    text-white flex flex-col
+                    transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl lg:shadow-xl
                     /* Fondo Restaurado */
                     bg-gradient-to-b from-[#0F2C4A] via-[#133657] to-[#081829]
-                    ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                    ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                     ${collapsed ? 'w-[90px]' : 'w-[280px]'}
                     /* Bordes redondeados en escritorio */
-                    md:my-4 md:ml-4 md:rounded-3xl border-r-0 md:border border-white/5
-                    relative
+                    lg:my-4 lg:ml-4 lg:rounded-3xl border-r-0 lg:border border-white/5
+                    lg:relative
                 `}
             >
                 <div className="h-[90px] flex items-center justify-between px-6 relative">
@@ -87,12 +83,10 @@ export default function MQSLayout({ children }: { children: React.ReactNode }) {
                         <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm ring-1 ring-white/20 overflow-hidden flex-shrink-0">
                             <img src="/logo-mqs.png" alt="MQS" className="w-full h-full object-cover" />
                         </div>
-
                         {/* Texto Marca */}
                         <span className="font-bold text-2xl tracking-tight text-white font-sans drop-shadow-md whitespace-nowrap">
                             MQS <span className="text-blue-200">JCQ</span>
                         </span>
-
                         {/* Logo JCQ */}
                         <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm ring-1 ring-white/20 overflow-hidden flex-shrink-0">
                             <img src="/logo-jcq.png" alt="JCQ" className="w-full h-full object-cover" />
@@ -101,7 +95,7 @@ export default function MQSLayout({ children }: { children: React.ReactNode }) {
 
                     <button
                         onClick={() => setMobileMenuOpen(false)}
-                        className="md:hidden w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                        className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
                     >
                         <i className="fas fa-times"></i>
                     </button>
@@ -111,7 +105,7 @@ export default function MQSLayout({ children }: { children: React.ReactNode }) {
                 <button
                     onClick={() => setCollapsed(!collapsed)}
                     className={`
-                        hidden md:flex items-center justify-center
+                        hidden lg:flex items-center justify-center
                         w-6 h-12 rounded-full
                         bg-[#0F2C4A] border border-white/20 shadow-[0_0_15px_rgba(0,0,0,0.3)]
                         text-blue-200 hover:text-white hover:bg-blue-600
@@ -124,12 +118,8 @@ export default function MQSLayout({ children }: { children: React.ReactNode }) {
                     <i className={`fas ${collapsed ? 'fa-chevron-right' : 'fa-chevron-left'} text-[10px]`}></i>
                 </button>
 
-                {/* Perfil de Usuario */}
-
-
                 {/* Menú Scrollable */}
                 <div className="flex-1 overflow-y-auto px-3 space-y-1 pb-4 scrollbar-hide mask-image-b">
-
                     <MenuGroup title="Principal" collapsed={collapsed}>
                         <MenuItem href="/mqs/obras" icon="fa-folder-open" label="Obras Secrex" active={isActive('/mqs/obras')} collapsed={collapsed} delay={getDelay(1)} />
                         <MenuItem href="/mqs/formatos" icon="fa-file-pdf" label="Formatos" active={isActive('/mqs/formatos')} collapsed={collapsed} delay={getDelay(2)} />
@@ -170,36 +160,26 @@ export default function MQSLayout({ children }: { children: React.ReactNode }) {
                         <i className="fas fa-arrow-left relative z-10 text-lg transition-transform group-hover:-translate-x-1"></i>
                         {!collapsed && <span className="font-bold text-base relative z-10 tracking-wide">Volver</span>}
                     </button>
-
-
                 </div>
             </aside>
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
-                {/* Header Actions - Top Right */}
-                <HeaderActions />
-
-                {/* Header Móvil */}
-
-                {/* Header Móvil */}
-                <div className="md:hidden m-3 h-[70px] bg-white/90 backdrop-blur-lg rounded-2xl border border-gray-100 flex items-center px-4 justify-between flex-shrink-0 sticky top-3 z-30 shadow-lg shadow-blue-900/5">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => setMobileMenuOpen(true)}
-                            className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 text-[#0F2C4A] hover:bg-blue-600 hover:text-white transition-all shadow-sm active:scale-90"
-                        >
-                            <i className="fas fa-bars text-lg"></i>
-                        </button>
-                        <span className="font-bold text-[#0F2C4A] text-lg tracking-tight">MQS</span>
-                    </div>
-                    <div className="w-9 h-9 bg-gradient-to-br from-[#0F2C4A] to-[#1a4b7a] rounded-xl text-white flex items-center justify-center text-sm font-bold shadow-md">
-                        {user?.username?.charAt(0).toUpperCase() || 'U'}
-                    </div>
+                {/* Header Actions - Top Right (Visible en Móvil y Desktop) */}
+                <div className="relative z-50">
+                    <HeaderActions />
                 </div>
 
+                {/* Botón Menú Móvil (Floating Action Button - Fixed Bottom Left) */}
+                <button
+                    onClick={() => setMobileMenuOpen(true)}
+                    className="lg:hidden fixed bottom-6 left-6 z-50 w-14 h-14 flex items-center justify-center rounded-full bg-[#0F2C4A] text-white shadow-[0_4px_20px_rgba(15,44,74,0.4)] hover:scale-110 active:scale-95 transition-all backdrop-blur-sm border border-white/20"
+                >
+                    <i className="fas fa-bars text-xl"></i>
+                </button>
+
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 scroll-smooth">
+                <div className="flex-1 overflow-y-auto p-2 sm:p-4 lg:p-8 scroll-smooth bg-white dark:bg-gray-900">
                     <div className="h-full animate-in fade-in duration-700 slide-in-from-bottom-2">
                         {children}
                     </div>
@@ -239,11 +219,9 @@ function MenuItem({ href, icon, label, active, collapsed, delay }: any) {
                 `}
             >
                 <i className={`fas ${icon} text-xl transition-transform duration-300 group-hover:scale-110 group-active:scale-95 ${collapsed ? '' : 'mr-4 w-6 text-center'} ${active ? 'text-white drop-shadow-md' : 'text-blue-100/70 group-hover:text-white group-hover:drop-shadow-sm'}`}></i>
-
                 {!collapsed && (
                     <span className={`font-semibold tracking-wide flex-1 drop-shadow-sm ${active ? 'text-[15.5px]' : 'text-[15px]'}`}>{label}</span>
                 )}
-
                 {active && !collapsed && (
                     <div className="w-2 h-2 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,1)] animate-pulse ml-2"></div>
                 )}

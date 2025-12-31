@@ -30,7 +30,7 @@ def test_login(url, name):
 
 if __name__ == "__main__":
     # Test Backend Directly
-    test_login("http://localhost:8000/api/auth/login", "Direct Backend (8000)")
+    test_login("https://back.mcqs-jcq.cloud/api/auth/login", "Direct Backend (8000)")
     
     # Test Frontend Proxy
-    test_login("http://localhost:3000/api/auth/login", "Frontend Proxy (3000)")
+    test_login("https://mcqs-jcq.cloud/api/auth/login", "Frontend Proxy (3000)")

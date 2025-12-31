@@ -26,7 +26,7 @@ export default function RenovacionesPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Premium */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6 lg:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-orange-50/50 dark:bg-orange-900/20 rounded-full -mr-16 -mt-16 pointer-events-none blur-3xl"></div>
 
                 <div className="relative z-10">
@@ -47,7 +47,7 @@ export default function RenovacionesPage() {
             </div>
 
             {/* Stats Cards Premium */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard
                     icon="fa-clock"
                     title="Pendientes"
@@ -106,37 +106,37 @@ export default function RenovacionesPage() {
                     <table className="w-full">
                         <thead className="bg-gray-50/50 dark:bg-gray-900/50">
                             <tr>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Código</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Obra</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vencimiento</th>
-                                <th className="px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
-                                <th className="px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Código</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Obra</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vencimiento</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                                <th className="px-4 sm:px-6 lg:px-8 py-5 text-right text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                             <tr className="hover:bg-orange-50/30 dark:hover:bg-orange-900/10 transition-colors group">
-                                <td className="px-8 py-5">
+                                <td className="px-4 sm:px-6 lg:px-8 py-5">
                                     <span className="font-mono text-sm font-semibold text-gray-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                                         REN-2024-001
                                     </span>
                                 </td>
-                                <td className="px-8 py-5">
+                                <td className="px-4 sm:px-6 lg:px-8 py-5">
                                     <div className="text-sm font-medium text-gray-900 dark:text-white">Obra Ejemplo 1</div>
                                     <div className="text-xs text-gray-400">Cliente: Ministerio de Vivienda</div>
                                 </td>
-                                <td className="px-8 py-5">
+                                <td className="px-4 sm:px-6 lg:px-8 py-5">
                                     <div className="flex items-center gap-2">
                                         <i className="far fa-calendar-alt text-orange-400"></i>
                                         <span className="text-sm font-bold text-gray-700 dark:text-gray-300">15 Ene 2025</span>
                                     </div>
                                 </td>
-                                <td className="px-8 py-5">
+                                <td className="px-4 sm:px-6 lg:px-8 py-5">
                                     <span className="px-3 py-1 text-xs font-bold rounded-full bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-100 dark:border-yellow-800 flex items-center gap-1.5 w-fit">
                                         <span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
                                         Pendiente
                                     </span>
                                 </td>
-                                <td className="px-8 py-5 text-right">
+                                <td className="px-4 sm:px-6 lg:px-8 py-5 text-right">
                                     <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Ver detalles">
                                             <i className="fas fa-eye"></i>

@@ -12,7 +12,7 @@ from app.schemas import UserUpdate, UserProfile, UserSessionSchema, PasswordChan
 from app.utils.security import verify_password, get_password_hash
 
 router = APIRouter(
-    prefix="/api/users",
+    prefix="https://back.mcqs-jcq.cloud/api/users/",
     tags=["users"],
     responses={404: {"description": "Not found"}},
 )

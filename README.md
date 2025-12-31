@@ -70,9 +70,9 @@ npm install
 
 ```bash
 # Crear base de datos
-mysql -u root -p
-CREATE DATABASE garantias_seace;
-```
+    mysql -u root -p
+    CREATE DATABASE garantias_seace;
+    ```
 
 ## ▶️ Ejecución
 

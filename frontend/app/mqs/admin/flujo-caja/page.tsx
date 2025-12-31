@@ -50,7 +50,7 @@ export default function FlujoCajaPage() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             {/* Header Premium */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 p-4 sm:p-6 lg:p-8 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-50/50 dark:bg-emerald-900/20 rounded-full -mr-16 -mt-16 pointer-events-none blur-3xl"></div>
 
                 <div className="relative z-10">
@@ -82,7 +82,7 @@ export default function FlujoCajaPage() {
             </div>
 
             {/* Summary Cards Premium */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                 <StatCard
                     icon="fa-arrow-trend-up"
                     title="Ingresos Totales"
@@ -113,8 +113,8 @@ export default function FlujoCajaPage() {
             </div>
 
             {/* Chart Placeholder Premium */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-6 sm:mb-8">
                     <div>
                         <h3 className="text-xl font-bold text-gray-900 dark:text-white">Evolución Financiera</h3>
                         <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Comparativa de ingresos vs egresos</p>
@@ -126,7 +126,7 @@ export default function FlujoCajaPage() {
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 dark:opacity-5"></div>
                     <div className="text-center relative z-10 transition-transform group-hover:scale-105 duration-500">
                         <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                            <i className="fas fa-chart-line text-4xl text-emerald-300 dark:text-emerald-500"></i>
+                            <i className="fas fa-chart-line text-2xl sm:text-3xl lg:text-4xl text-emerald-300 dark:text-emerald-500"></i>
                         </div>
                         <p className="text-gray-900 dark:text-white font-bold text-lg">Visualización de Datos</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">Pronto podrás visualizar gráficos interactivos detallados de tu flujo de caja en este espacio.</p>
@@ -135,9 +135,9 @@ export default function FlujoCajaPage() {
             </div>
 
             {/* Detailed Breakdown Premium */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 {/* Ingresos */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
                         <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
                             <i className="fas fa-arrow-up text-emerald-600 dark:text-emerald-400"></i>
@@ -170,7 +170,7 @@ export default function FlujoCajaPage() {
                 </div>
 
                 {/* Egresos */}
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-8 border border-gray-100 dark:border-gray-700">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-4 sm:p-6 lg:p-8 border border-gray-100 dark:border-gray-700">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
                         <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg">
                             <i className="fas fa-arrow-down text-rose-600 dark:text-rose-400"></i>
