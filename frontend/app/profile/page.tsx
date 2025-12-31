@@ -49,6 +49,19 @@ export default function ProfilePage() {
         }
     };
 
+    const handleDeleteAvatar = async () => {
+        if (!confirm('¿Eliminar foto de perfil?')) return;
+        try {
+            await api.delete('/api/users/me/avatar');
+            const updatedUser = { ...user, avatar_url: null };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            window.dispatchEvent(new Event('userUpdated'));
+        } catch (error) {
+            console.error('Error deleting avatar:', error);
+        }
+    };
+
     if (loading) return null;
 
     const isAdminOrDirector = user?.role === 'admin' || user?.role === 'director' || user?.role === 'DIRECTOR' || user?.role === 'ADMIN';
@@ -89,9 +102,20 @@ export default function ProfilePage() {
                                     <button
                                         onClick={handleAvatarClick}
                                         className="absolute bottom-1 right-1 p-2 bg-blue-600 rounded-full text-white shadow-lg border-2 border-white dark:border-slate-800 hover:bg-blue-700 transition-colors transform hover:scale-105"
+                                        title="Cambiar foto"
                                     >
                                         <Camera className="w-4 h-4" />
                                     </button>
+                                    {user?.avatar_url && (
+                                        <button
+                                            onClick={handleDeleteAvatar}
+                                            className="absolute bottom-1 left-1 p-2 bg-red-600 rounded-full text-white shadow-lg border-2 border-white dark:border-slate-800 hover:bg-red-700 transition-colors transform hover:scale-105"
+                                            title="Eliminar foto"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
+
                                     <input
                                         type="file"
                                         ref={fileInputRef}
@@ -215,8 +239,17 @@ function PersonalInfoForm({ user, setUser }: any) {
             }, 1000);
         } catch (err: any) {
             console.error('Error saving profile', err);
-            const errorMsg = err.response?.data?.detail;
-            setError(typeof errorMsg === 'string' ? errorMsg : 'Error al guardar los cambios');
+            let errorMsg = 'Error al guardar los cambios';
+            if (err.response?.data?.detail) {
+                if (typeof err.response.data.detail === 'string') {
+                    errorMsg = err.response.data.detail;
+                } else if (Array.isArray(err.response.data.detail)) {
+                    errorMsg = err.response.data.detail.map((e: any) => e.msg).join(', ');
+                } else {
+                    errorMsg = JSON.stringify(err.response.data.detail);
+                }
+            }
+            setError(errorMsg);
         } finally {
             setLoading(false);
         }
