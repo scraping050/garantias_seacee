@@ -534,56 +534,173 @@ function UserManagement({ currentUser }: { currentUser: any }) {
 }
 
 function EditUserDialog({ open, user, onClose }: { open: boolean, user: any, onClose: () => void }) {
-    // Implementation placeholder for Edit User Modal
-    // In a real scenario, this would have a form to update user details via PUT /api/users/{id}
+    const [formData, setFormData] = useState({
+        id_corporativo: user.id_corporativo || '',
+        nombre: user.nombre || '',
+        email: user.email || '',
+        perfil: user.perfil || 'COLABORADOR',
+        job_title: user.job_title || ''
+    });
     const [loading, setLoading] = useState(false);
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md animate-in zoom-in-95">
-                <h3 className="text-xl font-bold mb-4 dark:text-white">Editar Usuario</h3>
-                <p className="mb-4 text-slate-600 dark:text-slate-400">Editando a: {user.nombre}</p>
-                {/* Form fields would go here */}
-                <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={onClose}>Cancelar</Button>
-                    <Button onClick={() => onClose()}>Guardar (Simulado)</Button>
-                </div>
-            </div>
-        </div>
-    );
-}
+    const [error, setError] = useState('');
 
-function ResetPasswordDialog({ open, user, onClose }: { open: boolean, user: any, onClose: () => void }) {
-    // Implementation placeholder for Reset Password
-    const [newPassword, setNewPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    const handleReset = async () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setLoading(true);
+        setError('');
         try {
-            await api.put(`/api/users/${user.id}`, { password: newPassword });
+            await api.put(`/api/users/${user.id}`, formData);
             onClose();
-        } catch (e) {
-            console.error(e);
+        } catch (err: any) {
+            console.error(err);
+            setError(err.response?.data?.detail || 'Error al actualizar usuario');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+            <div
+                className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-lg animate-in zoom-in-95"
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold dark:text-white">Editar Usuario</h3>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full">
+                        <X className="w-5 h-5 dark:text-white" />
+                    </button>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">ID Corporativo</label>
+                            <input
+                                className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                value={formData.id_corporativo}
+                                onChange={e => setFormData({ ...formData, id_corporativo: e.target.value })}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Rol</label>
+                            <select
+                                className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                value={formData.perfil}
+                                onChange={e => setFormData({ ...formData, perfil: e.target.value })}
+                            >
+                                <option value="COLABORADOR">Colaborador</option>
+                                <option value="DIRECTOR">Director</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre Completo</label>
+                        <input
+                            className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                            value={formData.nombre}
+                            onChange={e => setFormData({ ...formData, nombre: e.target.value })}
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                        <input
+                            type="email"
+                            className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                            value={formData.email}
+                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cargo</label>
+                        <input
+                            className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                            value={formData.job_title}
+                            onChange={e => setFormData({ ...formData, job_title: e.target.value })}
+                        />
+                    </div>
+
+                    {error && <div className="text-red-500 text-sm">{error}</div>}
+
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+                        <Button type="submit" disabled={loading} className="bg-purple-600 hover:bg-purple-700 text-white">
+                            {loading ? 'Guardando...' : 'Guardar Cambios'}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+function ResetPasswordDialog({ open, user, onClose }: { open: boolean, user: any, onClose: () => void }) {
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleReset = async () => {
+        if (newPassword !== confirmPassword) {
+            setError('Las contraseñas no coinciden');
+            return;
+        }
+        if (newPassword.length < 3) {
+            setError('La contraseña es muy corta');
+            return;
+        }
+
+        setLoading(true);
+        setError('');
+        try {
+            await api.put(`/api/users/${user.id}`, { password: newPassword });
+            onClose();
+        } catch (e: any) {
+            console.error(e);
+            setError(e.response?.data?.detail || 'Error al restablecer contraseña');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+            <div
+                className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md animate-in zoom-in-95"
+                onClick={e => e.stopPropagation()}
+            >
                 <h3 className="text-xl font-bold mb-4 dark:text-white">Restablecer Contraseña</h3>
-                <p className="mb-4 text-slate-600 dark:text-slate-400">Usuario: {user.nombre}</p>
-                <input
-                    type="password"
-                    placeholder="Nueva contraseña"
-                    className="w-full p-3 rounded-xl border mb-4 dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                />
+                <p className="mb-4 text-slate-600 dark:text-slate-400 text-sm">Usuario: <strong>{user.nombre}</strong></p>
+
+                <div className="space-y-3 mb-6">
+                    <input
+                        type="password"
+                        placeholder="Nueva contraseña"
+                        className="w-full p-3 rounded-xl border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                    />
+                    <input
+                        type="password"
+                        placeholder="Confirmar nueva contraseña"
+                        className="w-full p-3 rounded-xl border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                    />
+                </div>
+
+                {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+
                 <div className="flex justify-end gap-2">
                     <Button variant="outline" onClick={onClose}>Cancelar</Button>
-                    <Button onClick={handleReset} disabled={loading}>{loading ? 'Guardando...' : 'Guardar'}</Button>
+                    <Button onClick={handleReset} disabled={loading} className="bg-purple-600 hover:bg-purple-700 text-white">
+                        {loading ? 'Guardando...' : 'Guardar Nueva Contraseña'}
+                    </Button>
                 </div>
             </div>
         </div>
