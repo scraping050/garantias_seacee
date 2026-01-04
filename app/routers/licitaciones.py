@@ -9,10 +9,15 @@ from app.models.seace import LicitacionesCabecera, LicitacionesAdjudicaciones
 from app.schemas import (
     LicitacionListSchema,
     LicitacionDetalleSchema,
-    PaginatedLicitacionesSchema
+    PaginatedLicitacionesSchema,
+    LicitacionCreate,
+    LicitacionCreate,
+    LicitacionUpdate
 )
+from app.utils.dependencies import get_current_user
+from app.models.user import User
 from typing import Optional
-from datetime import date
+from datetime import date, datetime
 import math
 
 router = APIRouter(prefix="/api/licitaciones", tags=["Licitaciones"])
@@ -36,6 +41,7 @@ def get_licitaciones(
     tipo_garantia: Optional[str] = Query(None, description="Filter by guarantee type"),
     fecha_desde: Optional[date] = Query(None, description="Filter from date (ISO format)"),
     fecha_hasta: Optional[date] = Query(None, description="Filter to date (ISO format)"),
+    origen: Optional[str] = Query(None, description="Filter by origin (Manuales/Automático)"),
     db: Session = Depends(get_db)
 ):
     """
@@ -50,6 +56,7 @@ def get_licitaciones(
     - location: departamento, provincia, distrito
     - time: year, mes
     - details: categoria, tipo_garantia
+    - origen: Manuales (API created) or Automático (ETL loaded)
     """
     
     from sqlalchemy import extract
@@ -78,6 +85,13 @@ def get_licitaciones(
         query = query.filter(LicitacionesCabecera.distrito == distrito)
     if categoria:
         query = query.filter(LicitacionesCabecera.categoria == categoria)
+
+    # Origin Filter
+    if origen:
+        if origen == "Manuales":
+            query = query.filter(LicitacionesCabecera.archivo_origen == None)
+        elif origen == "Automático":
+            query = query.filter(LicitacionesCabecera.archivo_origen != None)
         
     # Date filters on Cabecera
     if year:
@@ -198,3 +212,130 @@ def get_licitacion_detalle(
         distrito=licitacion.distrito,
         adjudicacion=adjudicacion
     )
+
+
+@router.post("", response_model=LicitacionListSchema)
+def create_licitacion(
+    licitacion: LicitacionCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new tender.
+    """
+    # Create header
+    new_licitacion = LicitacionCabecera(
+        id_convocatoria=str(int(datetime.now().timestamp())), # Simple ID generation
+        nomenclatura=licitacion.nomenclatura,
+        ocid=licitacion.ocid,
+        descripcion=licitacion.descripcion,
+        comprador=licitacion.comprador,
+        categoria=licitacion.categoria,
+        tipo_procedimiento=licitacion.tipo_procedimiento,
+        monto_estimado=licitacion.monto_estimado,
+        moneda=licitacion.moneda,
+        fecha_publicacion=licitacion.fecha_publicacion,
+        estado_proceso=licitacion.estado_proceso,
+        departamento=licitacion.departamento,
+        provincia=licitacion.provincia,
+        distrito=licitacion.distrito,
+        fecha_ultima_actualizacion=date.today()
+    )
+    
+    db.add(new_licitacion)
+    db.commit()
+    db.refresh(new_licitacion)
+    
+    return new_licitacion
+
+
+@router.put("/{id_convocatoria}", response_model=LicitacionListSchema)
+def update_licitacion(
+    id_convocatoria: str,
+    licitacion: LicitacionUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Update an existing tender.
+    """
+    existing_licitacion = db.query(LicitacionesCabecera).filter(
+        LicitacionesCabecera.id_convocatoria == id_convocatoria
+    ).first()
+    
+    if not existing_licitacion:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Licitación con id_convocatoria={id_convocatoria} no encontrada"
+        )
+    
+    # Update fields if provided
+    update_data = licitacion.model_dump(exclude_unset=True)
+    
+    # Track state change for notification
+    old_estado = existing_licitacion.estado_proceso
+    new_estado = update_data.get('estado_proceso')
+    
+    for key, value in update_data.items():
+        setattr(existing_licitacion, key, value)
+    
+    existing_licitacion.fecha_ultima_actualizacion = date.today()
+    
+    db.commit()
+    db.refresh(existing_licitacion)
+    
+    # Notify if state changed
+    if new_estado and old_estado != new_estado:
+        try:
+            # We need the current user to assign the notification (or notify admins).
+            # Limitation: The current endpoint didn't require auth explicitly in signature before, 
+            # but we can try to get it or just assign to the user who triggered it if we inject dependency.
+            # Ideally notifications go to interested parties, but for this demo, notifying the user themselves or "admins" is key.
+            # The prompt implies the user sees the notification in THEIR bell.
+            
+            # Since I cannot easily change the signature dynamically without re-reading imports,
+            # I will assume 'current_user' is available if I add it to the function args.
+            
+            # Create notification
+            from app.services.notification_service import notification_service
+            from app.models.notification import NotificationType, NotificationPriority
+            
+            # Ensure we have a user ID. If not logged in (public API?), we skip.
+            # But this is an admin action usually.
+            if current_user:
+                 notification_service.create_notification(
+                    db=db,
+                    user_id=current_user.id,
+                    type=NotificationType.LICITACION,
+                    priority=NotificationPriority.MEDIUM,
+                    title=f"Cambio de Estado: {existing_licitacion.nomenclatura or 'Licitación'}",
+                    message=f"Estado cambiado: {old_estado} -> {new_estado}",
+                    link=f"/seace/licitaciones/{id_convocatoria}" # Assuming this route exists or is desired
+                )
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+
+    return existing_licitacion
+
+
+@router.delete("/{id_convocatoria}")
+def delete_licitacion(
+    id_convocatoria: str,
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a tender.
+    """
+    existing_licitacion = db.query(LicitacionesCabecera).filter(
+        LicitacionesCabecera.id_convocatoria == id_convocatoria
+    ).first()
+    
+    if not existing_licitacion:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Licitación con id_convocatoria={id_convocatoria} no encontrada"
+        )
+    
+    db.delete(existing_licitacion)
+    db.commit()
+    
+    return {"message": "Licitación eliminada correctamente"}

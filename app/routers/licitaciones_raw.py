@@ -207,3 +207,50 @@ def get_licitacion_detail(
         import traceback
         traceback.print_exc()
         return {"error": str(e)}
+
+
+@router.get("/filters/all")
+def get_licitaciones_filters(db: Session = Depends(get_db)):
+    """
+    Get all available options for filters (Department, State, Category, etc.)
+    """
+    try:
+        # 1. Departamentos
+        dept_sql = text("SELECT DISTINCT departamento FROM licitaciones_cabecera WHERE departamento IS NOT NULL ORDER BY departamento")
+        departamentos = [row[0] for row in db.execute(dept_sql).fetchall() if row[0]]
+
+        # 2. Estados Proceso
+        estado_sql = text("SELECT DISTINCT estado_proceso FROM licitaciones_cabecera WHERE estado_proceso IS NOT NULL ORDER BY estado_proceso")
+        estados = [row[0] for row in db.execute(estado_sql).fetchall() if row[0]]
+
+        # 3. Categorias
+        cat_sql = text("SELECT DISTINCT categoria FROM licitaciones_cabecera WHERE categoria IS NOT NULL ORDER BY categoria")
+        categorias = [row[0] for row in db.execute(cat_sql).fetchall() if row[0]]
+
+        # 4. Periodos (Años)
+        anio_sql = text("SELECT DISTINCT EXTRACT(YEAR FROM fecha_publicacion) as anio FROM licitaciones_cabecera WHERE fecha_publicacion IS NOT NULL ORDER BY anio DESC")
+        anios = [int(row[0]) for row in db.execute(anio_sql).fetchall() if row[0]]
+        
+        # 5. Entidades Compradoras (Limit top 100 to avoid performance issues)
+        entidad_sql = text("SELECT DISTINCT comprador FROM licitaciones_cabecera WHERE comprador IS NOT NULL ORDER BY comprador LIMIT 100")
+        entidades = [row[0] for row in db.execute(entidad_sql).fetchall() if row[0]]
+
+        # 6. Tipos de Garantia (From Adjudicaciones)
+        garantia_sql = text("SELECT DISTINCT tipo_garantia FROM licitaciones_adjudicaciones WHERE tipo_garantia IS NOT NULL ORDER BY tipo_garantia")
+        tipos_garantia = [row[0] for row in db.execute(garantia_sql).fetchall() if row[0]]
+        
+        # 7. Aseguradoras / Entidades Financieras
+        aseg_sql = text("SELECT DISTINCT entidad_financiera FROM licitaciones_adjudicaciones WHERE entidad_financiera IS NOT NULL ORDER BY entidad_financiera")
+        aseguradoras = [row[0] for row in db.execute(aseg_sql).fetchall() if row[0]]
+
+        return {
+            "departamentos": departamentos,
+            "estados": estados,
+            "categorias": categorias,
+            "anios": anios,
+            "entidades": entidades,
+            "tipos_garantia": tipos_garantia,
+            "aseguradoras": aseguradoras
+        }
+    except Exception as e:
+        return {"error": str(e)}

@@ -178,39 +178,80 @@ export default function NotificationDropdown() {
                             </div>
                         ) : (
                             <div className="divide-y">
-                                {notifications.map((notification) => (
-                                    <div
-                                        key={notification.id}
-                                        onClick={() => handleNotificationClick(notification)}
-                                        className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${!notification.is_read ? 'bg-blue-50/50' : ''
-                                            }`}
-                                    >
-                                        <div className="flex gap-3">
-                                            <div className="flex-shrink-0 text-2xl">
-                                                {getTypeIcon(notification.type)}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-start justify-between gap-2 mb-1">
-                                                    <h4 className={`font-semibold text-sm ${!notification.is_read ? 'text-gray-900' : 'text-gray-600'}`}>
-                                                        {notification.title}
-                                                    </h4>
-                                                    <span className="text-2xl flex-shrink-0">
-                                                        {getPriorityIcon(notification.priority)}
-                                                    </span>
-                                                </div>
-                                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                                                    {notification.message}
-                                                </p>
-                                                <div className="flex items-center gap-2 text-xs text-gray-400">
-                                                    <span>{formatTimeAgo(notification.created_at)}</span>
-                                                    {!notification.is_read && (
-                                                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                {notifications.map((notification) => {
+                                    // Custom rendering for State Change
+                                    const isStateChange = notification.message.startsWith("Estado cambiado:");
+                                    let oldState = "";
+                                    let newState = "";
+
+                                    if (isStateChange) {
+                                        const parts = notification.message.replace("Estado cambiado:", "").split("->");
+                                        if (parts.length === 2) {
+                                            oldState = parts[0].trim();
+                                            newState = parts[1].trim();
+                                        }
+                                    }
+
+                                    return (
+                                        <div
+                                            key={notification.id}
+                                            className={`p-4 hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-blue-50/30' : ''}`}
+                                        >
+                                            <div className="flex gap-3">
+                                                {/* Icon/Dot */}
+                                                <div className="flex-shrink-0 mt-1">
+                                                    {!notification.is_read ? (
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-blue-600"></div>
+                                                    ) : (
+                                                        <div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>
                                                     )}
+                                                </div>
+
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-start justify-between gap-2 mb-1">
+                                                        <h4 className="font-semibold text-sm text-gray-900 line-clamp-1">
+                                                            {notification.title}
+                                                        </h4>
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                markAsRead(notification.id);
+                                                            }}
+                                                            className="text-xs text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                                                        >
+                                                            Marcar
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Message / State Change Design */}
+                                                    {isStateChange && oldState && newState ? (
+                                                        <div className="text-xs mb-2">
+                                                            <span className="text-gray-500 font-medium">{oldState}</span>
+                                                            <span className="mx-2 text-gray-400">→</span>
+                                                            <span className="text-red-500 font-bold">{newState}</span>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                                                            {notification.message}
+                                                        </p>
+                                                    )}
+
+                                                    <div className="flex items-center justify-between mt-2">
+                                                        <span className="text-[10px] text-gray-400">
+                                                            {formatTimeAgo(notification.created_at)}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => handleNotificationClick(notification)}
+                                                            className="text-xs text-blue-600 font-bold hover:underline"
+                                                        >
+                                                            Ver
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

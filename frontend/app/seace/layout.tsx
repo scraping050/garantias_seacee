@@ -86,13 +86,11 @@ export default function SEACELayout({ children }: { children: React.ReactNode })
                 {/* Menú Scrollable */}
                 <div className="flex-1 overflow-y-auto px-3 space-y-1 pb-4 scrollbar-hide">
                     <MenuGroup title="Inteligencia SEACE" collapsed={collapsed}>
-                        <MenuItem href="/seace/resumen" icon="fa-gauge-high" label="Resumen (KPIs)" active={isActive('/seace/resumen')} collapsed={collapsed} delay={getDelay(1)} />
-                        <MenuItem href="/seace/database" icon="fa-database" label="Base de Datos" active={isActive('/seace/database')} collapsed={collapsed} delay={getDelay(2)} />
-                        <MenuItem href="/seace/busqueda" icon="fa-search" label="Búsqueda Avanzada" active={isActive('/seace/busqueda')} collapsed={collapsed} delay={getDelay(3)} />
-                        <MenuItem href="/seace/reportes" icon="fa-file-pdf" label="Reportes & Export" active={isActive('/seace/reportes')} collapsed={collapsed} delay={getDelay(4)} />
-                        <MenuItem href="/seace/ecommerce" icon="fa-chart-pie" label="Ecommerce Dash" active={isActive('/seace/ecommerce')} collapsed={collapsed} delay={getDelay(5)} />
-                        <MenuItem href="/seace/tendencias" icon="fa-chart-line" label="Tendencias" active={isActive('/seace/tendencias')} collapsed={collapsed} delay={getDelay(6)} />
-                        <MenuItem href="/seace/alertas" icon="fa-bell" label="Centro Alertas" active={isActive('/seace/alertas')} collapsed={collapsed} delay={getDelay(7)} />
+                        <MenuItem href="/seace/dashboard" icon="fa-chart-pie" label="Dashboard" active={isActive('/seace/dashboard')} collapsed={collapsed} delay={getDelay(1)} />
+                        <MenuItem href="/seace/busqueda" icon="fa-search" label="Búsqueda" active={isActive('/seace/busqueda')} collapsed={collapsed} delay={getDelay(2)} />
+                        <MenuItem href="/seace/notificaciones" icon="fa-database" label="Notificaciones" active={isActive('/seace/notificaciones')} collapsed={collapsed} delay={getDelay(3)} />
+                        <MenuItem href="/seace/reportes" icon="fa-chart-bar" label="Reportes" active={isActive('/seace/reportes')} collapsed={collapsed} delay={getDelay(4)} />
+                        <MenuItem href="/seace/gestion-manual" icon="fa-clipboard-list" label="Gestión Manual" active={isActive('/seace/gestion-manual')} collapsed={collapsed} delay={getDelay(5)} />
                     </MenuGroup>
 
                     <MenuGroup title="Administración" collapsed={collapsed} className="mt-6">

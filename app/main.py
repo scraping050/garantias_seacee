@@ -3,7 +3,7 @@ FastAPI main application for MQS Garantías - SEACE monitoring system.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, mqs, admin, scraping, tendencias, etl, formatos, users, support, test, notifications, test_serialization, reportes, chatbot
+from app.routers import auth, mqs, admin, scraping, tendencias, etl, formatos, users, support, test, notifications, test_serialization, reportes, chatbot, exports
 from app.routers import dashboard_raw as dashboard
 from app.routers import licitaciones_raw as licitaciones
 from app.services.notification_scheduler import start_scheduler, stop_scheduler
@@ -44,6 +44,7 @@ app.include_router(tendencias.router)
 app.include_router(reportes.router)
 app.include_router(scraping.router)
 app.include_router(etl.router)
+app.include_router(exports.router)
 
 
 # ====== Startup/Shutdown Events ======

@@ -28,39 +28,7 @@ async def list_users(
         raise HTTPException(status_code=403, detail="No autorizado")
     return db.query(User).offset(skip).limit(limit).all()
 
-@router.put("/{user_id}", response_model=UserProfile)
-async def update_user_admin(
-    user_id: int,
-    user_update: AdminUserUpdate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    if current_user.perfil != 'DIRECTOR':
-        raise HTTPException(status_code=403, detail="No autorizado")
-    
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    if user_update.id_corporativo:
-        # Check if exists
-        existing = db.query(User).filter(User.id_corporativo == user_update.id_corporativo).first()
-        if existing and existing.id != user_id:
-            raise HTTPException(status_code=400, detail="ID Corporativo ya existe")
-        user.id_corporativo = user_update.id_corporativo
-
-    if user_update.password:
-        user.password_hash = get_password_hash(user_update.password)
-    
-    if user_update.nombre: user.nombre = user_update.nombre
-    if user_update.apellidos: user.apellidos = user_update.apellidos
-    if user_update.email: user.email = user_update.email
-    if user_update.perfil: user.perfil = user_update.perfil
-    if user_update.activo is not None: user.activo = user_update.activo
-
-    db.commit()
-    db.refresh(user)
-    return user
 
 @router.get("/me", response_model=UserProfile)
 async def read_users_me(current_user: User = Depends(get_current_user)):
@@ -254,6 +222,41 @@ async def get_audit_logs(
     return db.query(AuditLog).filter(
         AuditLog.user_id == current_user.id
     ).order_by(AuditLog.created_at.desc()).limit(50).all()
+
+@router.put("/{user_id}", response_model=UserProfile)
+async def update_user_admin(
+    user_id: int,
+    user_update: AdminUserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user.perfil != 'DIRECTOR':
+        raise HTTPException(status_code=403, detail="No autorizado")
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    if user_update.id_corporativo:
+        # Check if exists
+        existing = db.query(User).filter(User.id_corporativo == user_update.id_corporativo).first()
+        if existing and existing.id != user_id:
+            raise HTTPException(status_code=400, detail="ID Corporativo ya existe")
+        user.id_corporativo = user_update.id_corporativo
+
+    if user_update.password:
+        user.password_hash = get_password_hash(user_update.password)
+    
+    if user_update.nombre: user.nombre = user_update.nombre
+    if user_update.apellidos: user.apellidos = user_update.apellidos
+    if user_update.email: user.email = user_update.email
+    if user_update.perfil: user.perfil = user_update.perfil
+    if user_update.activo is not None: user.activo = user_update.activo
+
+    db.commit()
+    db.refresh(user)
+    return user
+
 
 @router.delete("/{user_id}")
 async def delete_user(

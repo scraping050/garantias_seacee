@@ -42,28 +42,37 @@ export const SearchFiltersComponent: React.FC<Props> = ({
         departamentos: DEFAULT_DEPARTAMENTOS
     });
 
+    const [showAdvanced, setShowAdvanced] = useState(false);
+
+    import { licitacionService } from "@/lib/services/licitacionService";
+
+    // ... (inside component)
+
     useEffect(() => {
         const fetchOptions = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/dashboard/filter-options`);
-                if (res.ok) {
-                    const data = await res.json();
+                // Pass current local filters to get adapted options
+                const data = await licitacionService.getFilters(localFilters);
 
-                    // Only update if we get valid data, otherwise keep defaults or merge distinct
-                    setOptions(prev => ({
-                        estados: data.estados?.length ? data.estados : prev.estados,
-                        aseguradoras: data.aseguradoras?.length ? data.aseguradoras : prev.aseguradoras,
-                        tipos_entidad: data.tipos_entidad || [],
-                        objetos: data.objetos?.length ? data.objetos : prev.objetos,
-                        departamentos: data.departamentos?.length ? data.departamentos : prev.departamentos
-                    }));
-                }
+                setOptions(prev => ({
+                    estados: data.estados?.length ? data.estados : [],
+                    aseguradoras: data.aseguradoras?.length ? data.aseguradoras : [],
+                    tipos_entidad: data.tipos_entidad || [], // Backend might not return this yet?
+                    objetos: data.categorias?.length ? data.categorias : [], // Map categorias to objetos
+                    departamentos: data.departamentos?.length ? data.departamentos : []
+                }));
             } catch (error) {
-                console.error("Error fetching filter options, using defaults:", error);
+                console.error("Error fetching filter options:", error);
             }
         };
-        fetchOptions();
-    }, []);
+
+        // Debounce fetching to avoid spamming while typing
+        const timeoutId = setTimeout(() => {
+            fetchOptions();
+        }, 500);
+
+        return () => clearTimeout(timeoutId);
+    }, [localFilters]);
 
     const handleChange = (key: keyof SearchFilters, value: string) => {
         setLocalFilters(prev => ({ ...prev, [key]: value }));
@@ -106,18 +115,18 @@ export const SearchFiltersComponent: React.FC<Props> = ({
 
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={handleClear}
-                        className="group flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300 transition-all dark:bg-[#0b122b] dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                    >
-                        <X className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
-                        <span className="sr-only sm:not-sr-only">Limpiar</span>
-                    </button>
-                    <button
-                        onClick={handleApply}
+                        onClick={() => setShowAdvanced(!showAdvanced)}
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all"
                     >
-                        <Filter className="w-3.5 h-3.5" />
-                        <span>Aplicar Filtros</span>
+                        {showAdvanced ? "Menos Filtros" : "Más Filtros"}
+                        <Filter className={`w-3.5 h-3.5 transition-transform duration-300 ${showAdvanced ? "rotate-180" : ""}`} />
+                    </button>
+                    <button
+                        onClick={handleClear}
+                        className="group flex items-center gap-2 px-4 py-2 rounded-lg border border-transparent bg-red-50 text-xs font-bold text-red-500 hover:bg-red-100 transition-all dark:bg-red-900/20 dark:text-red-400"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Limpiar</span>
                     </button>
                 </div>
             </div>
@@ -130,7 +139,7 @@ export const SearchFiltersComponent: React.FC<Props> = ({
                     <div className="relative group">
                         <input
                             type="text"
-                            placeholder="Buscar por descripción, comprador, nomenclatura..."
+                            placeholder="Buscar por descripción, comprador, nomenclatura, ganador, banco..."
                             className={`${inputClasses} pl-11 py-3 bg-white border-slate-200 shadow-sm group-focus-within:shadow-md transition-shadow`}
                             value={localFilters.search || ""}
                             onChange={(e) => handleChange("search", e.target.value)}
@@ -140,7 +149,7 @@ export const SearchFiltersComponent: React.FC<Props> = ({
                     </div>
                 </div>
 
-                {/* Filters Row 1 */}
+                {/* Filters Row 1: Basicos */}
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
                     {/* Departamento */}
@@ -158,30 +167,6 @@ export const SearchFiltersComponent: React.FC<Props> = ({
                         </select>
                     </div>
 
-                    {/* Provincia */}
-                    <div>
-                        <label className={labelClasses}>Provincia</label>
-                        <input
-                            type="text"
-                            placeholder="Todas las provincias"
-                            className={inputClasses}
-                            value={localFilters.provincia || ""}
-                            onChange={(e) => handleChange("provincia", e.target.value)}
-                        />
-                    </div>
-
-                    {/* Distrito */}
-                    <div>
-                        <label className={labelClasses}>Distrito</label>
-                        <input
-                            type="text"
-                            placeholder="Todos los distritos"
-                            className={inputClasses}
-                            value={localFilters.distrito || ""}
-                            onChange={(e) => handleChange("distrito", e.target.value)}
-                        />
-                    </div>
-
                     {/* Estado */}
                     <div>
                         <label className={labelClasses}>Estado del Proceso</label>
@@ -196,10 +181,6 @@ export const SearchFiltersComponent: React.FC<Props> = ({
                             ))}
                         </select>
                     </div>
-                </div>
-
-                {/* Filters Row 2 */}
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
 
                     {/* Categoría */}
                     <div>
@@ -216,66 +197,109 @@ export const SearchFiltersComponent: React.FC<Props> = ({
                         </select>
                     </div>
 
-                    {/* Entidad (Comprador) */}
-                    <div>
-                        <label className={labelClasses}>Entidad o Consorcio</label>
-                        <input
-                            type="text"
-                            placeholder="Todas las entidades"
-                            className={inputClasses}
-                            value={localFilters.comprador || ""}
-                            onChange={(e) => handleChange("comprador", e.target.value)}
-                        />
-                    </div>
-
-                    {/* Aseguradora */}
-                    <div>
-                        <label className={labelClasses}>Aseguradora</label>
-                        <select
-                            className={inputClasses}
-                            value={localFilters.aseguradora || ""}
-                            onChange={(e) => handleChange("aseguradora", e.target.value)}
-                        >
-                            <option value="">Todas las aseguradoras</option>
-                            {options.aseguradoras.map((seg) => (
-                                <option key={seg} value={seg}>{seg}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Año */}
-                    <div>
-                        <label className={labelClasses}>Año</label>
-                        <select
-                            className={inputClasses}
-                            value={localFilters.year || ""}
-                            onChange={(e) => handleChange("year", e.target.value)}
-                        >
-                            <option value="">Todos los años</option>
-                            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i + 1).map(y => (
-                                <option key={y} value={y}>{y}</option>
-                            ))}
-                        </select>
+                    {/* Periodo (Año/Mes) */}
+                    <div className="flex gap-2">
+                        <div className="flex-1">
+                            <label className={labelClasses}>Periodo</label>
+                            <select
+                                className={inputClasses}
+                                value={localFilters.year || ""}
+                                onChange={(e) => handleChange("year", e.target.value)}
+                            >
+                                <option value="">Año</option>
+                                {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i + 1).map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex-1">
+                            <label className={`${labelClasses} invisible`}>Mes</label>
+                            <select
+                                className={inputClasses}
+                                value={localFilters.mes || ""}
+                                onChange={(e) => handleChange("mes", e.target.value)}
+                            >
+                                <option value="">Mes</option>
+                                {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map((m, i) => (
+                                    <option key={i} value={i + 1}>{m}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                {/* Advanced Row (Collapsible usually, but open here per design, minimal month) */}
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
-                    <div>
-                        <label className={labelClasses}>Mes</label>
-                        <select
-                            className={inputClasses}
-                            value={localFilters.mes || ""}
-                            onChange={(e) => handleChange("mes", e.target.value)}
-                        >
-                            <option value="">Todos los meses</option>
-                            {["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"].map((m, i) => (
-                                <option key={i} value={i + 1}>{m}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
+                {/* Filters Row 2: Avanzados (Expandible) */}
+                {showAdvanced && (
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 animate-in fade-in slide-in-from-top-2 duration-300">
 
+                        {/* Ubicación Detallada */}
+                        <div className="flex gap-2">
+                            <div className="flex-1 hidden sm:block">
+                                <label className={labelClasses}>Ubicación Detallada</label>
+                                <input
+                                    type="text"
+                                    placeholder="Provincia"
+                                    className={inputClasses}
+                                    value={localFilters.provincia || ""}
+                                    onChange={(e) => handleChange("provincia", e.target.value)}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className={`${labelClasses} sm:invisible`}>Distrito</label>
+                                <input
+                                    type="text"
+                                    placeholder="Distrito"
+                                    className={inputClasses}
+                                    value={localFilters.distrito || ""}
+                                    onChange={(e) => handleChange("distrito", e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Tipo de Garantía */}
+                        <div>
+                            <label className={labelClasses}>Tipo de Garantía</label>
+                            <select
+                                className={inputClasses}
+                                value={localFilters.tipo_garantia || ""}
+                                onChange={(e) => handleChange("tipo_garantia", e.target.value)}
+                            >
+                                <option value="">Todos los tipos</option>
+                                <option value="CARTA_FIANZA">Carta Fianza</option>
+                                <option value="POLIZA_CAUCION">Póliza de Caución</option>
+                                <option value="FIDEICOMISO">Fideicomiso</option>
+                            </select>
+                        </div>
+
+                        {/* Aseguradora */}
+                        <div>
+                            <label className={labelClasses}>Aseguradora</label>
+                            <select
+                                className={inputClasses}
+                                value={localFilters.aseguradora || ""}
+                                onChange={(e) => handleChange("aseguradora", e.target.value)}
+                            >
+                                <option value="">Todas las aseguradoras</option>
+                                {options.aseguradoras.map((seg) => (
+                                    <option key={seg} value={seg}>{seg}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* Entidad o Consorcio */}
+                        <div>
+                            <label className={labelClasses}>Entidad o Consorcio</label>
+                            <input
+                                type="text"
+                                placeholder="Todas las entidades"
+                                className={inputClasses}
+                                value={localFilters.entidad || ""}
+                                onChange={(e) => handleChange("entidad", e.target.value)}
+                            />
+                        </div>
+
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -14,10 +14,18 @@ export interface Licitacion {
     departamento?: string;
     provincia?: string;
     distrito?: string;
+
+    // Campos para Adjudicaciones / Contratado
     monto_total_adjudicado?: number;
     total_adjudicaciones?: number;
     con_garantia_bancaria?: number;
     entidades_financieras?: string;
+    ganador_nombre?: string;
+    ganador_ruc?: string;
+    tipo_garantia?: string;
+    banco?: string;
+    fecha_adjudicacion?: string;
+    id_contrato?: string;
 }
 
 export interface Adjudicacion {
@@ -28,6 +36,7 @@ export interface Adjudicacion {
     fecha_adjudicacion: string;
     entidad_financiera?: string;
     tipo_garantia?: string;
+    estado?: string;
 }
 
 export interface SearchFilters {
@@ -39,6 +48,7 @@ export interface SearchFilters {
     categoria?: string;
     comprador?: string;
     aseguradora?: string;
+    entidad?: string; // Nuevo campo
     year?: string;
     mes?: string;
     tipo_garantia?: string;

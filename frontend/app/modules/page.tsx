@@ -19,7 +19,7 @@ export default function ModulesPage() {
     };
 
     const handleSEACEClick = () => {
-        router.push('/seace/resumen');
+        router.push('/seace/dashboard');
     };
 
     return (

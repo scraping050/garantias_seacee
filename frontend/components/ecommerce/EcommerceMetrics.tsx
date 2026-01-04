@@ -15,28 +15,28 @@ export const EcommerceMetrics: React.FC<EcommerceMetricsProps> = ({ licitaciones
     return (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 h-full">
             {/* Card 1: Licitaciones */}
-            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-[#111c44] p-6 shadow-md dark:shadow-xl border border-slate-100 dark:border-white/5 transition-colors duration-300">
-                <div className="flex items-start justify-between">
-                    <div className="rounded-xl bg-blue-500/10 p-3">
-                        <Users className="h-6 w-6 text-blue-500" />
+            <div className="rounded-2xl bg-white dark:bg-[#111c44] p-6 shadow-sm border border-slate-100 dark:border-white/5 h-full flex flex-col justify-between">
+                <div className="mb-4">
+                    <div className="h-12 w-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <Users className="h-6 w-6 text-slate-600 dark:text-slate-300" />
                     </div>
                 </div>
-                <div className="mt-4">
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Licitaciones</p>
-                    <h3 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{formattedLicitaciones}</h3>
+                <div>
+                    <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Licitaciones</p>
+                    <h3 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{formattedLicitaciones}</h3>
                 </div>
             </div>
 
             {/* Card 2: Monto Adjudicado */}
-            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-[#111c44] p-6 shadow-md dark:shadow-xl border border-slate-100 dark:border-white/5 transition-colors duration-300">
-                <div className="flex items-start justify-between">
-                    <div className="rounded-xl bg-purple-500/10 p-3">
-                        <Package className="h-6 w-6 text-purple-500" />
+            <div className="rounded-2xl bg-white dark:bg-[#111c44] p-6 shadow-sm border border-slate-100 dark:border-white/5 h-full flex flex-col justify-between">
+                <div className="mb-4">
+                    <div className="h-12 w-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <Package className="h-6 w-6 text-slate-600 dark:text-slate-300" />
                     </div>
                 </div>
-                <div className="mt-4">
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Monto Adjudicado</p>
-                    <h3 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">{formattedMonto}</h3>
+                <div>
+                    <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">Monto Adjudicado</p>
+                    <h3 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">{formattedMonto}</h3>
                 </div>
             </div>
         </div>

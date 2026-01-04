@@ -88,58 +88,51 @@ export const DistributionRadialChart: React.FC<DistributionRadialChartProps> = (
     };
 
     return (
-        <div className="rounded-2xl bg-white dark:bg-[#111c44] p-6 shadow-md dark:shadow-xl border border-slate-100 dark:border-white/5 h-full flex flex-col transition-colors duration-300">
+        <div className="rounded-2xl bg-white dark:bg-[#111c44] p-6 shadow-sm border border-slate-100 dark:border-white/5 h-full flex flex-col justify-between">
             {/* Header */}
-            <div className="flex justify-between items-start mb-1">
-                <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Distribución por Tipo</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">Licitaciones por categoría</p>
-                </div>
-                <button className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" />
-                    </svg>
-                </button>
+            <div className="mb-4">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Distribución por Tipo</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Licitaciones por categoría</p>
             </div>
 
             {/* Chart */}
-            <div className="flex items-center justify-center my-4">
+            <div className="flex-1 flex items-center justify-center relative -mt-6">
                 <ReactApexChart
                     options={options}
                     series={chartPercentages}
                     type="radialBar"
-                    height={280}
+                    height={320}
                     width="100%"
                 />
             </div>
 
-            {/* Description Text */}
-            <div className="text-center text-sm text-slate-600 dark:text-slate-400 mb-4 px-2">
-                {new Intl.NumberFormat('es-PE').format(totalAmount)} licitaciones distribuidas: {
-                    stats.map((stat, idx) => (
-                        <React.Fragment key={idx}>
-                            <span className="font-medium text-slate-700 dark:text-slate-300">
-                                {stat.label.toUpperCase()}
-                            </span> ({stat.percent}%){idx < stats.length - 1 ? ', ' : '.'}
-                        </React.Fragment>
-                    ))
-                }
+            {/* Footer Summary */}
+            <div className="text-center mb-8">
+                <p className="text-[13px] text-slate-500 dark:text-slate-400 max-w-[80%] mx-auto leading-relaxed">
+                    <span className="font-bold text-slate-700 dark:text-slate-200">{new Intl.NumberFormat('es-PE').format(totalAmount)}</span> licitaciones distribuidas:
+                    {stats.map((stat, idx) => (
+                        <span key={idx}>
+                            {' '}<span className={`${stat.textColor} font-semibold`}>{stat.label.toUpperCase()}</span> ({stat.percent}%)
+                            {idx < stats.length - 1 ? ',' : '.'}
+                        </span>
+                    ))}
+                </p>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-3 bg-slate-50 dark:bg-[#0b122b] rounded-xl p-4">
+            {/* Stats Grid Legend */}
+            <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-white/10 pt-2 border-t border-slate-50 dark:border-white/5">
                 {stats.map((stat, i) => (
-                    <div key={i} className="text-center">
-                        <p className={`text-sm font-semibold ${stat.textColor} mb-1`}>
+                    <div key={i} className="text-center px-1">
+                        <p className={`text-sm font-semibold ${stat.textColor} mb-1.5`}>
                             {stat.label}
                         </p>
-                        <div className="flex items-center justify-center gap-1">
-                            <p className="text-xl font-bold text-slate-900 dark:text-white">
+                        <div className="flex items-center justify-center gap-1.5">
+                            <p className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                                 {stat.valueFormatted}
                             </p>
-                            <TrendingUp className="w-4 h-4 text-green-500" />
+                            <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 mt-0.5">
                             {stat.percent}%
                         </p>
                     </div>

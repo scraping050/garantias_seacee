@@ -58,7 +58,51 @@ class LicitacionCabeceraSchema(BaseModel):
     last_update: Optional[date] = None
     adjudicaciones: List[AdjudicacionSchema] = []
 
+
     model_config = ConfigDict(from_attributes=True)
+
+
+class AdjudicacionCreate(BaseModel):
+    """Schema for creating an adjudication."""
+    ganador_nombre: str
+    ganador_ruc: str
+    monto_adjudicado: Decimal
+    fecha_adjudicacion: date
+    estado_item: str = 'Adjudicado'
+    entidad_financiera: Optional[str] = None
+
+
+class LicitacionCreate(BaseModel):
+    """Schema for creating a new tender."""
+    nomenclatura: str
+    ocid: Optional[str] = None
+    descripcion: str
+    comprador: str
+    categoria: str
+    tipo_procedimiento: str = 'Pública'
+    monto_estimado: Decimal
+    moneda: str = 'PEN'
+    fecha_publicacion: date
+    estado_proceso: str = 'CONVOCADO'
+    departamento: Optional[str] = None
+    provincia: Optional[str] = None
+    distrito: Optional[str] = None
+    adjudicaciones: List[AdjudicacionCreate] = []
+
+
+class LicitacionUpdate(BaseModel):
+    """Schema for updating an existing tender."""
+    nomenclatura: Optional[str] = None
+    descripcion: Optional[str] = None
+    comprador: Optional[str] = None
+    categoria: Optional[str] = None
+    monto_estimado: Optional[Decimal] = None
+    moneda: Optional[str] = None
+    fecha_publicacion: Optional[date] = None
+    estado_proceso: Optional[str] = None
+    departamento: Optional[str] = None
+    provincia: Optional[str] = None
+    distrito: Optional[str] = None
 
 
 class LicitacionListSchema(BaseModel):
