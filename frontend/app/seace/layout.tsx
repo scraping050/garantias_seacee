@@ -92,10 +92,6 @@ export default function SEACELayout({ children }: { children: React.ReactNode })
                         <MenuItem href="/seace/reportes" icon="fa-chart-bar" label="Reportes" active={isActive('/seace/reportes')} collapsed={collapsed} delay={getDelay(4)} />
                         <MenuItem href="/seace/gestion-manual" icon="fa-clipboard-list" label="Gestión Manual" active={isActive('/seace/gestion-manual')} collapsed={collapsed} delay={getDelay(5)} />
                     </MenuGroup>
-
-                    <MenuGroup title="Administración" collapsed={collapsed} className="mt-6">
-                        <MenuItem href="/seace/etl" icon="fa-cogs" label="Motor ETL" active={isActive('/seace/etl')} collapsed={collapsed} delay={getDelay(5)} />
-                    </MenuGroup>
                 </div>
 
                 {/* Footer */}
