@@ -65,7 +65,15 @@ export default function GeneradorReportesPage() {
         const loadFilters = async () => {
             try {
                 const data = await licitacionService.getFilters();
-                setFilterOptions(data);
+                setFilterOptions({
+                    departamentos: data.departamentos || [],
+                    estados: data.estados || [],
+                    categorias: data.categorias || [],
+                    tipos_garantia: data.tipos_garantia || [],
+                    aseguradoras: data.aseguradoras || [],
+                    entidades: data.entidades || [],
+                    anios: data.anios || []
+                });
             } catch (error) {
                 console.error("Error loading filters:", error);
             }
@@ -87,7 +95,15 @@ export default function GeneradorReportesPage() {
             try {
                 // Get updated options based on current selections
                 const data = await licitacionService.getFilters(filters);
-                setFilterOptions(data);
+                setFilterOptions({
+                    departamentos: data.departamentos || [],
+                    estados: data.estados || [],
+                    categorias: data.categorias || [],
+                    tipos_garantia: data.tipos_garantia || [],
+                    aseguradoras: data.aseguradoras || [],
+                    entidades: data.entidades || [],
+                    anios: data.anios || []
+                });
             } catch (error) {
                 console.error("Error faceted filters:", error);
             }
