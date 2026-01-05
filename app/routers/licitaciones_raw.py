@@ -179,12 +179,34 @@ def get_all_filters(db: Session = Depends(get_db)):
 
         aseguradoras = sorted(list(normalized_set))
         if not aseguradoras: aseguradoras = DEFAULTS["aseguradoras"]
+
+        # NEW: 5. Periodos (Años)
+        anio_sql = text("SELECT DISTINCT EXTRACT(YEAR FROM fecha_publicacion) FROM licitaciones_cabecera WHERE fecha_publicacion IS NOT NULL")
+        db_anios = {int(r[0]) for r in db.execute(anio_sql).fetchall() if r[0]}
+        standard_anios = {2026, 2025, 2024}
+        anios = sorted(list(db_anios.union(standard_anios)), reverse=True)
+
+        # NEW: 6. Entidades (Comprador)
+        entidad_sql = text("SELECT DISTINCT UPPER(TRIM(comprador)) FROM licitaciones_cabecera WHERE comprador IS NOT NULL AND TRIM(comprador) != '' ORDER BY 1")
+        entidades = [r[0] for r in db.execute(entidad_sql).fetchall() if r[0]]
+
+        # NEW: 7. Tipos de Garantia
+        garantia_sql = text("SELECT DISTINCT UPPER(TRIM(tipo_garantia)) FROM licitaciones_adjudicaciones WHERE tipo_garantia IS NOT NULL AND TRIM(tipo_garantia) != ''")
+        raw_garantias = [r[0] for r in db.execute(garantia_sql).fetchall() if r[0]]
+        garantias_set = set()
+        for g in raw_garantias:
+            parts = [p.strip() for p in g.split('|')]
+            garantias_set.update(parts)
+        tipos_garantia = sorted(list(garantias_set))
         
         return {
             "departamentos": departamentos,
             "categorias": categorias,
             "estados": estados,
-            "aseguradoras": aseguradoras
+            "aseguradoras": aseguradoras,
+            "anios": anios,
+            "entidades": entidades,
+            "tipos_garantia": tipos_garantia
         }
     except Exception as e:
         print(f"Error getting filters: {e}")
