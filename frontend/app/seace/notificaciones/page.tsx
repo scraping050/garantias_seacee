@@ -62,16 +62,27 @@ export default function NotificacionesPage() {
 
     const formatCurrency = (val?: number) => new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', maximumFractionDigits: 0 }).format(val || 0);
 
-    const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        return new Intl.DateTimeFormat('es-PE', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        }).format(date);
+    const formatDate = (dateStr: string | null | undefined) => {
+        // Handle invalid/missing dates
+        if (!dateStr) return 'Fecha no disponible';
+
+        try {
+            const date = new Date(dateStr);
+            // Check if date is valid
+            if (isNaN(date.getTime())) {
+                return 'Fecha inválida';
+            }
+            return new Intl.DateTimeFormat('es-PE', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            }).format(date);
+        } catch (error) {
+            return 'Fecha inválida';
+        }
     };
 
     const getStatusBadge = (status?: EstadoLicitacion) => {
