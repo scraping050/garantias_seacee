@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
+    output: 'standalone', // Required for PM2/production deployment
     async rewrites() {
         return [
             {
