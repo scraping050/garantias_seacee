@@ -2,7 +2,7 @@
 # Script para ejecutar EN EL VPS directamente
 # Guarda como deploy.sh en el VPS y ejecuta: bash deploy.sh
 
-cd /home/prd-mcqs-jcq/htdocs/mcqs-jcq.cloud
+cd /home/mcqs-jcq/htdocs/mcqs-jcq.com
 
 echo "==================================================="
 echo "1. Actualizando código desde GitHub..."
@@ -13,7 +13,7 @@ echo ""
 echo "==================================================="
 echo "2. Creando .env.production para frontend..."
 echo "==================================================="
-echo 'NEXT_PUBLIC_API_URL=https://back.mcqs-jcq.cloud' > frontend/.env.production
+echo 'NEXT_PUBLIC_API_URL=https://api.mcqs-jcq.com' > frontend/.env.production
 cat frontend/.env.production
 
 echo ""
