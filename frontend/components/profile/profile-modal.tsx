@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { X, User, Mail, Briefcase, Camera, Key, Lock, Shield, Smartphone, PenLine, Check, Eye, EyeOff } from 'lucide-react';
+import { X, User, Mail, Briefcase, Camera, Key, Lock, Shield, Smartphone, PenLine, Check, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { api } from '@/lib/api';
