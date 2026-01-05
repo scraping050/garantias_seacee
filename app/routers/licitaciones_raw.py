@@ -11,6 +11,140 @@ from datetime import date
 router = APIRouter(prefix="/api/licitaciones", tags=["Licitaciones"])
 
 
+@router.get("/suggestions")
+def get_search_suggestions(
+    query: str = Query(..., min_length=3),
+    db: Session = Depends(get_db)
+):
+    """
+    Get autocomplete suggestions for Universal Search.
+    Searches: Comprador, Nomenclatura, Descripcion, RUC Ganador, Ganador Name, Entidad Financiera.
+    """
+    try:
+        query_upper = query.upper().strip()
+        search_pattern = f"%{query_upper}%"
+        
+        suggestions = []
+        
+        # 1. Search Entidades, Nomenclaturas, Descripciones, Ubicaciones
+        sql_entidad = text("""
+            SELECT DISTINCT UPPER(TRIM(comprador)) 
+            FROM licitaciones_cabecera 
+            WHERE UPPER(comprador) LIKE :pattern
+            UNION
+            SELECT DISTINCT TRIM(nomenclatura) 
+            FROM licitaciones_cabecera 
+            WHERE UPPER(nomenclatura) LIKE :pattern
+            UNION
+            SELECT DISTINCT ocid 
+            FROM licitaciones_cabecera 
+            WHERE UPPER(ocid) LIKE :pattern
+            UNION
+            SELECT DISTINCT UPPER(TRIM(departamento)) 
+            FROM licitaciones_cabecera 
+            WHERE UPPER(departamento) LIKE :pattern
+            UNION
+            SELECT DISTINCT SUBSTRING(descripcion FROM 1 FOR 60) 
+            FROM licitaciones_cabecera 
+            WHERE UPPER(descripcion) LIKE :pattern
+            LIMIT 8
+        """)
+        entidad_rows = db.execute(sql_entidad, {"pattern": search_pattern}).fetchall()
+        for row in entidad_rows:
+            if row[0]:
+                # Infer type for better UI UX
+                val = row[0]
+                type_label = "General"
+                if len(val) == 2 and val.isdigit(): type_label = "Departamento" # false positive safety, likely won't hit
+                elif "MUNICIPALIDAD" in val or "GOBIERNO" in val or "MINISTERIO" in val: type_label = "Entidad"
+                elif "-" in val and any(c.isdigit() for c in val): type_label = "Código" # OCID/Noms usually have dashes/nums
+                elif len(val) > 20 and " " in val: type_label = "Descripción"
+                else: type_label = "Ubicación/Otro"
+                
+                suggestions.append({"value": val, "type": type_label})
+
+        # 2. Search RUCs and Proveedores (Adjudicaciones)
+        sql_details = text("""
+            SELECT DISTINCT provider, type_label FROM (
+                SELECT UPPER(TRIM(ganador_nombre)) as provider, 'Proveedor' as type_label
+                FROM licitaciones_adjudicaciones 
+                WHERE UPPER(ganador_nombre) LIKE :pattern
+                UNION
+                SELECT ganador_ruc as provider, 'RUC' as type_label
+                FROM licitaciones_adjudicaciones 
+                WHERE ganador_ruc LIKE :pattern
+                UNION
+                SELECT UPPER(TRIM(entidad_financiera)) as provider, 'Banco' as type_label
+                FROM licitaciones_adjudicaciones 
+                WHERE UPPER(entidad_financiera) LIKE :pattern
+            ) as sub
+            LIMIT 10
+        """)
+        detail_rows = db.execute(sql_details, {"pattern": search_pattern}).fetchall()
+        for row in detail_rows:
+            if row[0]:
+                suggestions.append({"value": row[0], "type": row[1]})
+        
+        # Deduplicate
+        seen = set()
+        unique_results = []
+        for s in suggestions:
+            if s['value'] not in seen:
+                seen.add(s['value'])
+                unique_results.append(s)
+        
+        return unique_results[:10]
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return [{"value": f"Error: {str(e)}", "type": "Error"}]
+
+@router.get("/filters/all")
+def get_all_filters(db: Session = Depends(get_db)):
+    """
+    Get all available filter options. Returns defaults if DB is empty to prevent empty UI.
+    """
+    DEFAULTS = {
+        "departamentos": ["AMAZONAS", "ANCASH", "APURIMAC", "AREQUIPA", "AYACUCHO", "CAJAMARCA", "CALLAO", 
+                         "CUSCO", "HUANCAVELICA", "HUANUCO", "ICA", "JUNIN", "LA LIBERTAD", "LAMBAYEQUE", 
+                         "LIMA", "LORETO", "MADRE DE DIOS", "MOQUEGUA", "PASCO", "PIURA", "PUNO", 
+                         "SAN MARTIN", "TACNA", "TUMBES", "UCAYALI"],
+        "estados": ["CONVOCADO", "ADJUDICADO", "CONTRATADO", "NULO", "DESIERTO", "CANCELADO", "SUSPENDIDO"],
+        "categorias": ["BIENES", "SERVICIOS", "OBRAS", "CONSULTORIA DE OBRAS"],
+        "aseguradoras": ["SECREX", "AVLA", "INSUR", "MAPFRE", "CRECER", "LIBERTY", "MUNDIAL"]
+    }
+
+    try:
+        # 1. Departamentos
+        depts = db.execute(text("SELECT DISTINCT UPPER(TRIM(departamento)) FROM licitaciones_cabecera WHERE departamento IS NOT NULL AND TRIM(departamento) != '' ORDER BY 1")).fetchall()
+        departamentos = [r[0] for r in depts if r[0]]
+        if not departamentos: departamentos = DEFAULTS["departamentos"]
+
+        # 2. Categorias
+        cats = db.execute(text("SELECT DISTINCT UPPER(TRIM(categoria)) FROM licitaciones_cabecera WHERE categoria IS NOT NULL AND TRIM(categoria) != '' ORDER BY 1")).fetchall()
+        categorias = [r[0] for r in cats if r[0]]
+        if not categorias: categorias = DEFAULTS["categorias"]
+
+        # 3. Estados
+        ests = db.execute(text("SELECT DISTINCT UPPER(TRIM(estado_proceso)) FROM licitaciones_cabecera WHERE estado_proceso IS NOT NULL AND TRIM(estado_proceso) != '' ORDER BY 1")).fetchall()
+        estados = [r[0] for r in ests if r[0]]
+        if not estados: estados = DEFAULTS["estados"]
+
+        # 4. Aseguradoras in adjudicaciones
+        asegs = db.execute(text("SELECT DISTINCT UPPER(TRIM(entidad_financiera)) FROM licitaciones_adjudicaciones WHERE entidad_financiera IS NOT NULL AND TRIM(entidad_financiera) != '' ORDER BY 1")).fetchall()
+        aseguradoras = [r[0] for r in asegs if r[0]]
+        if not aseguradoras: aseguradoras = DEFAULTS["aseguradoras"]
+        
+        return {
+            "departamentos": departamentos,
+            "categorias": categorias,
+            "estados": estados,
+            "aseguradoras": aseguradoras
+        }
+    except Exception as e:
+        print(f"Error getting filters: {e}")
+        return DEFAULTS
+
 @router.get("")
 def get_licitaciones(
     page: int = Query(1, ge=1),
@@ -19,6 +153,14 @@ def get_licitaciones(
     estado: Optional[str] = Query(None),
     categoria: Optional[str] = Query(None),
     departamento: Optional[str] = Query(None),
+    provincia: Optional[str] = Query(None),
+    distrito: Optional[str] = Query(None),
+    anio: Optional[int] = Query(None),
+    mes: Optional[str] = Query(None),
+    tipo_garantia: Optional[str] = Query(None),
+    entidad_financiera: Optional[str] = Query(None),
+    comprador: Optional[str] = Query(None),
+    origen: Optional[str] = Query(None), # New parameter
     db: Session = Depends(get_db)
 ):
     """
@@ -32,18 +174,118 @@ def get_licitaciones(
         params = {}
         
         if search:
-            where_clauses.append("(nomenclatura LIKE :search OR comprador LIKE :search)")
-            params['search'] = f"%{search}%"
+            # Universal Search Logic
+            search_term = f"%{search.upper()}%"
+            where_clauses.append("""
+                (
+                    UPPER(nomenclatura) LIKE :search OR 
+                    UPPER(comprador) LIKE :search OR 
+                    UPPER(descripcion) LIKE :search OR
+                    UPPER(ocid) LIKE :search OR
+                    UPPER(departamento) LIKE :search OR
+                    UPPER(ubicacion_completa) LIKE :search OR
+                    EXISTS (
+                        SELECT 1 FROM licitaciones_adjudicaciones la 
+                        WHERE la.id_convocatoria = licitaciones_cabecera.id_convocatoria 
+                        AND (
+                            UPPER(la.ganador_nombre) LIKE :search OR 
+                            la.ganador_ruc LIKE :search OR 
+                            UPPER(la.entidad_financiera) LIKE :search
+                        )
+                    )
+                )
+            """)
+            params['search'] = search_term
         if estado:
-            where_clauses.append("estado_proceso = :estado")
+            where_clauses.append("UPPER(TRIM(estado_proceso)) = :estado")
             params['estado'] = estado
         if categoria:
-            where_clauses.append("categoria = :categoria")
+            where_clauses.append("UPPER(TRIM(categoria)) = :categoria")
             params['categoria'] = categoria
         if departamento:
-            where_clauses.append("departamento = :departamento")
+            where_clauses.append("UPPER(TRIM(departamento)) = :departamento")
             params['departamento'] = departamento
-        
+        if provincia:
+            where_clauses.append("UPPER(TRIM(provincia)) = :provincia")
+            params['provincia'] = provincia
+        if distrito:
+            where_clauses.append("UPPER(TRIM(distrito)) = :distrito")
+            params['distrito'] = distrito
+        if anio:
+            where_clauses.append("EXTRACT(YEAR FROM fecha_publicacion) = :anio")
+            params['anio'] = anio
+        if comprador:
+            where_clauses.append("UPPER(TRIM(comprador)) = :comprador")
+            params['comprador'] = comprador
+            
+        # Origin Filter (Manual vs Automatic)
+        if origen and origen != "Todos":
+            if origen == "Manuales":
+                # Manual IDs are UUIDs (36 chars)
+                where_clauses.append("LENGTH(id_convocatoria) > 20")
+            elif origen == "Automático":
+                # Automatic IDs are shorter SEACE IDs
+                where_clauses.append("LENGTH(id_convocatoria) <= 20")
+
+        if mes:
+            # Handle month filtering (1-12)
+            try:
+                mes_int = int(mes)
+                where_clauses.append("EXTRACT(MONTH FROM fecha_publicacion) = :mes")
+                params['mes'] = mes_int
+            except ValueError:
+                pass # Ignore invalid month inputs
+            
+        # Advanced Filters: Subqueries for Adjudicaciones
+        if tipo_garantia:
+            where_clauses.append("""
+                EXISTS (
+                    SELECT 1 FROM licitaciones_adjudicaciones la 
+                    WHERE la.id_convocatoria = licitaciones_cabecera.id_convocatoria 
+                    AND UPPER(la.tipo_garantia) LIKE :garantia
+                )
+            """)
+            params['garantia'] = f"%{tipo_garantia.upper()}%"
+            
+        if entidad_financiera:
+            # Handle Aliases
+            search_entidad = entidad_financiera.upper().strip()
+            
+            # Special BCP Hybrid Match
+            if "BANCO DE CREDITO" in search_entidad or search_entidad == "BCP":
+                where_clauses.append("""
+                    EXISTS (
+                        SELECT 1 FROM licitaciones_adjudicaciones la 
+                        WHERE la.id_convocatoria = licitaciones_cabecera.id_convocatoria 
+                        AND (UPPER(la.entidad_financiera) LIKE '%CREDITO%' OR UPPER(la.entidad_financiera) LIKE '%BCP%')
+                    )
+                """)
+            elif search_entidad == "BBVA":
+                where_clauses.append("""
+                    EXISTS (
+                        SELECT 1 FROM licitaciones_adjudicaciones la 
+                        WHERE la.id_convocatoria = licitaciones_cabecera.id_convocatoria 
+                        AND UPPER(la.entidad_financiera) LIKE '%BBVA%'
+                    )
+                """)
+            elif search_entidad == "INTERBANK":
+                where_clauses.append("""
+                    EXISTS (
+                        SELECT 1 FROM licitaciones_adjudicaciones la 
+                        WHERE la.id_convocatoria = licitaciones_cabecera.id_convocatoria 
+                        AND (UPPER(la.entidad_financiera) LIKE '%INTERBANK%' OR UPPER(la.entidad_financiera) LIKE '%INTERNACIONAL%')
+                    )
+                """)
+            else:
+                where_clauses.append("""
+                    EXISTS (
+                        SELECT 1 FROM licitaciones_adjudicaciones la 
+                        WHERE la.id_convocatoria = licitaciones_cabecera.id_convocatoria 
+                        AND UPPER(la.entidad_financiera) LIKE :entidad
+                    )
+                """)
+                params['entidad'] = f"%{search_entidad}%"
+
         where_sql = "WHERE " + " AND ".join(where_clauses) if where_clauses else ""
         
         # Get total count
@@ -59,24 +301,32 @@ def get_licitaciones(
         offset = (page - 1) * limit
         data_sql = text(f"""
             SELECT 
-                id_convocatoria,
-                ocid,
-                nomenclatura,
-                descripcion,
-                comprador,
-                categoria,
-                tipo_procedimiento,
-                monto_estimado,
-                moneda,
-                fecha_publicacion,
-                estado_proceso,
-                ubicacion_completa,
-                departamento,
-                provincia,
-                distrito
-            FROM licitaciones_cabecera
-            {where_sql}
-            ORDER BY fecha_publicacion DESC
+                lc.id_convocatoria,
+                lc.ocid,
+                lc.nomenclatura,
+                lc.descripcion,
+                lc.comprador,
+                lc.categoria,
+                lc.tipo_procedimiento,
+                lc.monto_estimado,
+                lc.moneda,
+                lc.fecha_publicacion,
+                lc.estado_proceso,
+                lc.ubicacion_completa,
+                lc.departamento,
+                lc.provincia,
+                lc.distrito,
+                (SELECT GROUP_CONCAT(DISTINCT la.ganador_nombre SEPARATOR ' | ') FROM licitaciones_adjudicaciones la WHERE la.id_convocatoria = lc.id_convocatoria) as ganador_nombre,
+                (SELECT GROUP_CONCAT(DISTINCT la.ganador_ruc SEPARATOR ' | ') FROM licitaciones_adjudicaciones la WHERE la.id_convocatoria = lc.id_convocatoria) as ganador_ruc,
+                (SELECT GROUP_CONCAT(DISTINCT la.entidad_financiera SEPARATOR ' | ') FROM licitaciones_adjudicaciones la WHERE la.id_convocatoria = lc.id_convocatoria) as entidad_financiera,
+                (SELECT GROUP_CONCAT(DISTINCT la.tipo_garantia SEPARATOR ',') FROM licitaciones_adjudicaciones la WHERE la.id_convocatoria = lc.id_convocatoria) as tipo_garantia,
+                (SELECT SUM(la.monto_adjudicado) FROM licitaciones_adjudicaciones la WHERE la.id_convocatoria = lc.id_convocatoria) as monto_total_adjudicado,
+                (SELECT COUNT(*) FROM licitaciones_adjudicaciones la WHERE la.id_convocatoria = lc.id_convocatoria) as total_adjudicaciones,
+                (SELECT la.fecha_adjudicacion FROM licitaciones_adjudicaciones la WHERE la.id_convocatoria = lc.id_convocatoria LIMIT 1) as fecha_adjudicacion,
+                (SELECT la.id_contrato FROM licitaciones_adjudicaciones la WHERE la.id_convocatoria = lc.id_convocatoria LIMIT 1) as id_contrato
+            FROM licitaciones_cabecera lc
+            {where_sql.replace('licitaciones_cabecera', 'lc') if where_sql else ''}
+            ORDER BY lc.fecha_publicacion DESC
             LIMIT :limit OFFSET :offset
         """)
         
@@ -103,7 +353,16 @@ def get_licitaciones(
                 "ubicacion_completa": row[11],
                 "departamento": row[12],
                 "provincia": row[13],
-                "distrito": row[14]
+                "distrito": row[14],
+                # New fields from subqueries
+                "ganador_nombre": row[15],
+                "ganador_ruc": row[16],
+                "entidad_financiera": row[17],
+                "tipo_garantia": row[18],
+                "monto_total_adjudicado": float(row[19]) if row[19] else 0,
+                "total_adjudicaciones": int(row[20]) if row[20] else 0,
+                "fecha_adjudicacion": row[21].isoformat() if row[21] else None,
+                "id_contrato": row[22]
             })
         
         # Calculate pagination
@@ -128,6 +387,53 @@ def get_licitaciones(
             "total_pages": 0,
             "items": []
         }
+
+
+@router.get("/locations")
+def get_locations(
+    departamento: Optional[str] = Query(None),
+    provincia: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Get cascading location options (Raw Repo Version)
+    """
+    try:
+        provincias = []
+        distritos = []
+
+        if departamento:
+            # Normalize input
+            dept_normalized = departamento.upper().strip()
+            
+            # Get Provincias
+            prov_sql = text("""
+                SELECT DISTINCT UPPER(TRIM(provincia)) 
+                FROM licitaciones_cabecera 
+                WHERE UPPER(TRIM(departamento)) = :dept AND provincia IS NOT NULL AND TRIM(provincia) != '' 
+                ORDER BY 1
+            """)
+            provincias = [row[0] for row in db.execute(prov_sql, {"dept": dept_normalized}).fetchall() if row[0]]
+
+            if provincia:
+                # Normalize input
+                prov_normalized = provincia.upper().strip()
+                
+                # Get Distritos
+                dist_sql = text("""
+                    SELECT DISTINCT UPPER(TRIM(distrito)) 
+                    FROM licitaciones_cabecera 
+                    WHERE UPPER(TRIM(departamento)) = :dept AND UPPER(TRIM(provincia)) = :prov AND distrito IS NOT NULL AND TRIM(distrito) != '' 
+                    ORDER BY 1
+                """)
+                distritos = [row[0] for row in db.execute(dist_sql, {"dept": dept_normalized, "prov": prov_normalized}).fetchall() if row[0]]
+
+        return {
+            "provincias": provincias,
+            "distritos": distritos
+        }
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @router.get("/{id_convocatoria}")
@@ -208,40 +514,140 @@ def get_licitacion_detail(
         traceback.print_exc()
         return {"error": str(e)}
 
+    except Exception as e:
+        return {"error": str(e)}
+
 
 @router.get("/filters/all")
 def get_licitaciones_filters(db: Session = Depends(get_db)):
     """
     Get all available options for filters (Department, State, Category, etc.)
+    Standardizes inputs (UPPER/TRIM) and ensures business domains exist.
     """
     try:
         # 1. Departamentos
-        dept_sql = text("SELECT DISTINCT departamento FROM licitaciones_cabecera WHERE departamento IS NOT NULL ORDER BY departamento")
+        dept_sql = text("""
+            SELECT DISTINCT UPPER(TRIM(departamento)) 
+            FROM licitaciones_cabecera 
+            WHERE departamento IS NOT NULL AND TRIM(departamento) != '' 
+            ORDER BY 1
+        """)
         departamentos = [row[0] for row in db.execute(dept_sql).fetchall() if row[0]]
 
         # 2. Estados Proceso
-        estado_sql = text("SELECT DISTINCT estado_proceso FROM licitaciones_cabecera WHERE estado_proceso IS NOT NULL ORDER BY estado_proceso")
+        estado_sql = text("""
+            SELECT DISTINCT UPPER(TRIM(estado_proceso)) 
+            FROM licitaciones_cabecera 
+            WHERE estado_proceso IS NOT NULL AND TRIM(estado_proceso) != '' 
+            ORDER BY 1
+        """)
         estados = [row[0] for row in db.execute(estado_sql).fetchall() if row[0]]
 
-        # 3. Categorias
-        cat_sql = text("SELECT DISTINCT categoria FROM licitaciones_cabecera WHERE categoria IS NOT NULL ORDER BY categoria")
-        categorias = [row[0] for row in db.execute(cat_sql).fetchall() if row[0]]
+        # 3. Categorias - Enforce OBRAS, BIENES, SERVICIOS
+        cat_sql = text("""
+            SELECT DISTINCT UPPER(TRIM(categoria)) 
+            FROM licitaciones_cabecera 
+            WHERE categoria IS NOT NULL AND TRIM(categoria) != '' 
+        """)
+        db_cats = {row[0] for row in db.execute(cat_sql).fetchall() if row[0]}
+        # Ensure standard categories exist even if not in DB yet
+        standard_cats = {"OBRAS", "BIENES", "SERVICIOS"}
+        categorias = sorted(list(db_cats.union(standard_cats)))
 
-        # 4. Periodos (Años)
-        anio_sql = text("SELECT DISTINCT EXTRACT(YEAR FROM fecha_publicacion) as anio FROM licitaciones_cabecera WHERE fecha_publicacion IS NOT NULL ORDER BY anio DESC")
-        anios = [int(row[0]) for row in db.execute(anio_sql).fetchall() if row[0]]
+        # 4. Periodos (Años) - Enforce 2026, 2025, 2024
+        anio_sql = text("""
+            SELECT DISTINCT EXTRACT(YEAR FROM fecha_publicacion) as anio 
+            FROM licitaciones_cabecera 
+            WHERE fecha_publicacion IS NOT NULL 
+        """)
+        db_anios = {int(row[0]) for row in db.execute(anio_sql).fetchall() if row[0]}
+        # Ensure recent years exist
+        standard_anios = {2026, 2025, 2024}
+        anios = sorted(list(db_anios.union(standard_anios)), reverse=True)
         
-        # 5. Entidades Compradoras (Limit top 100 to avoid performance issues)
-        entidad_sql = text("SELECT DISTINCT comprador FROM licitaciones_cabecera WHERE comprador IS NOT NULL ORDER BY comprador LIMIT 100")
+        # 5. Entidades Compradoras
+        entidad_sql = text("""
+            SELECT DISTINCT UPPER(TRIM(comprador)) 
+            FROM licitaciones_cabecera 
+            WHERE comprador IS NOT NULL AND TRIM(comprador) != '' 
+            ORDER BY 1
+        """)
         entidades = [row[0] for row in db.execute(entidad_sql).fetchall() if row[0]]
 
-        # 6. Tipos de Garantia (From Adjudicaciones)
-        garantia_sql = text("SELECT DISTINCT tipo_garantia FROM licitaciones_adjudicaciones WHERE tipo_garantia IS NOT NULL ORDER BY tipo_garantia")
-        tipos_garantia = [row[0] for row in db.execute(garantia_sql).fetchall() if row[0]]
+        # 6. Tipos de Garantia - Clean and Split
+        garantia_sql = text("""
+            SELECT DISTINCT UPPER(TRIM(tipo_garantia)) 
+            FROM licitaciones_adjudicaciones 
+            WHERE tipo_garantia IS NOT NULL AND TRIM(tipo_garantia) != '' 
+        """)
+        raw_garantias = [row[0] for row in db.execute(garantia_sql).fetchall() if row[0]]
+        garantias_set = set()
+        for g in raw_garantias:
+            # Split by pipe if exists, otherwise just add
+            parts = [p.strip() for p in g.split('|')]
+            garantias_set.update(parts)
+        tipos_garantia = sorted(list(garantias_set))
         
-        # 7. Aseguradoras / Entidades Financieras
-        aseg_sql = text("SELECT DISTINCT entidad_financiera FROM licitaciones_adjudicaciones WHERE entidad_financiera IS NOT NULL ORDER BY entidad_financiera")
-        aseguradoras = [row[0] for row in db.execute(aseg_sql).fetchall() if row[0]]
+        # 7. Aseguradoras / Entidades Financieras - Clean and Split
+        aseg_sql = text("""
+            SELECT DISTINCT UPPER(TRIM(entidad_financiera)) 
+            FROM licitaciones_adjudicaciones 
+            WHERE entidad_financiera IS NOT NULL AND TRIM(entidad_financiera) != '' 
+        """)
+        raw_aseguradoras = [row[0] for row in db.execute(aseg_sql).fetchall() if row[0]]
+        aseg_set = set()
+        
+        # Define Known Brands for Normalization (Order matters: longer/specific first if needed)
+        brands = [
+            'SCOTIABANK', 'BBVA', 'BCP', 'INTERBANK', 'BANBIF', 'PICHINCHA', 
+            'MAPFRE', 'LA POSITIVA', 'RIMAC', 'PACIFICO', 'CHUBB', 'AVLA', 
+            'CESCE', 'CRECER', 'SECREX', 'CITI', 'SANTANDER', 'GNB', 
+            'BANCO DE COMERCIO', 'FALABELLA', 'CAJA CUSCO', 'CAJA PIURA',
+            'CAJA AREQUIPA', 'CAJA HUANCAYO', 'CREDITO DEL PERU'
+        ]
+        
+        for a in raw_aseguradoras:
+            # Split by pipe and Normalize (Upper + Remove Accents)
+            parts = [p.strip().upper() for p in a.split('|')]
+            for part in parts:
+                # Remove accents for comparison
+                norm_part = part.replace('Á','A').replace('É','E').replace('Í','I').replace('Ó','O').replace('Ú','U')
+                
+                matched_brand = None
+                for brand in brands:
+                    if brand in norm_part:
+                        # Handle special BCP case 
+                        if brand == 'CREDITO DEL PERU' or brand == 'BCP' or norm_part == 'BCP': 
+                            matched_brand = 'BANCO DE CREDITO DEL PERU'
+                        # Handle INTERBANK case (Banco Internacional del Peru)
+                        elif brand == 'INTERBANK' or 'INTERNACIONAL' in norm_part:
+                            matched_brand = 'INTERBANK'
+                        else:
+                            matched_brand = brand
+                        break
+                
+                if matched_brand:
+                    aseg_set.add(matched_brand)
+                else:
+                    # Clean up common extras if no major brand matched
+                    clean_part = part.replace('BANCO', '').replace('S.A.', '').replace('S.A.A.', '').strip()
+                    if len(clean_part) > 2: # Ignore tiny junk
+                        aseg_set.add(clean_part)
+            
+        # Remove BCP from set if it exists separately (we want only Full Name)
+        if 'BCP' in aseg_set:
+            aseg_set.discard('BCP')
+        # Ensure 'BANCO DE CREDITO DEL PERU' is there if we have relevant data
+        if any('CREDITO' in x for x in aseg_set):
+             aseg_set.add('BANCO DE CREDITO DEL PERU')
+        
+        # Remove INTERNACIONAL leftovers if INTERBANK exists
+        if 'INTERBANK' in aseg_set:
+             # Filter out any stray "BANCO INTERNACIONAL..." strings that might have slipped through if they didn't match the loop strictly
+             aseg_set = {x for x in aseg_set if 'INTERNACIONAL' not in x}
+             aseg_set.add('INTERBANK')
+            
+        aseguradoras = sorted(list(aseg_set))
 
         return {
             "departamentos": departamentos,
@@ -253,4 +659,355 @@ def get_licitaciones_filters(db: Session = Depends(get_db)):
             "aseguradoras": aseguradoras
         }
     except Exception as e:
+        return {"error": str(e)}
+
+
+@router.get("/locations")
+def get_locations(
+    departamento: Optional[str] = Query(None),
+    provincia: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
+    """
+    Get cascading location options (Raw Repo Version)
+    """
+    try:
+        provincias = []
+        distritos = []
+
+        if departamento:
+            # Normalize input
+            dept_normalized = departamento.upper().strip()
+            
+            # Get Provincias
+            prov_sql = text("""
+                SELECT DISTINCT UPPER(TRIM(provincia)) 
+                FROM licitaciones_cabecera 
+                WHERE UPPER(TRIM(departamento)) = :dept AND provincia IS NOT NULL AND TRIM(provincia) != '' 
+                ORDER BY 1
+            """)
+            provincias = [row[0] for row in db.execute(prov_sql, {"dept": dept_normalized}).fetchall() if row[0]]
+
+            if provincia:
+                # Normalize input
+                prov_normalized = provincia.upper().strip()
+                
+                # Get Distritos
+                dist_sql = text("""
+                    SELECT DISTINCT UPPER(TRIM(distrito)) 
+                    FROM licitaciones_cabecera 
+                    WHERE UPPER(TRIM(departamento)) = :dept AND UPPER(TRIM(provincia)) = :prov AND distrito IS NOT NULL AND TRIM(distrito) != '' 
+                    ORDER BY 1
+                """)
+                distritos = [row[0] for row in db.execute(dist_sql, {"dept": dept_normalized, "prov": prov_normalized}).fetchall() if row[0]]
+
+        return {
+            "provincias": provincias,
+            "distritos": distritos
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+from pydantic import BaseModel
+from typing import List, Optional
+
+# --- Pydantic Models for Write Operations ---
+class ConsorcioItem(BaseModel):
+    nombre: Optional[str] = None
+    ruc: Optional[str] = None
+    porcentaje: Optional[float] = 0
+
+class AdjudicacionItem(BaseModel):
+    id_adjudicacion: Optional[str] = None
+    ganador_nombre: Optional[str] = None
+    ganador_ruc: Optional[str] = None
+    monto_adjudicado: Optional[float] = 0
+    fecha_adjudicacion: Optional[str] = None
+    estado_item: Optional[str] = None
+    entidad_financiera: Optional[str] = None
+    tipo_garantia: Optional[str] = None
+    id_contrato: Optional[str] = None
+    consorcios: Optional[List[ConsorcioItem]] = []
+
+class LicitacionCreate(BaseModel):
+    ocid: Optional[str] = None
+    nomenclatura: Optional[str] = None
+    descripcion: str
+    comprador: str
+    categoria: Optional[str] = None
+    tipo_procedimiento: Optional[str] = None
+    monto_estimado: Optional[float] = 0
+    moneda: Optional[str] = 'PEN'
+    fecha_publicacion: Optional[str] = None
+    estado_proceso: Optional[str] = None
+    departamento: Optional[str] = None
+    provincia: Optional[str] = None
+    distrito: Optional[str] = None
+    adjudicaciones: Optional[List[AdjudicacionItem]] = []
+
+# --- Write Endpoints ---
+
+@router.post("")
+def create_licitacion(licitacion: LicitacionCreate, db: Session = Depends(get_db)):
+    """
+    Create a new licitacion and its adjudicaciones (Raw SQL)
+    """
+    try:
+        # 1. Generate ID (simple UUID or logic)
+        import uuid
+        new_id = str(uuid.uuid4())
+        
+        # 2. Insert Header
+        sql_header = text("""
+            INSERT INTO licitaciones_cabecera (
+                id_convocatoria, ocid, nomenclatura, descripcion, comprador, 
+                categoria, tipo_procedimiento, monto_estimado, moneda, 
+                fecha_publicacion, estado_proceso, ubicacion_completa, 
+                departamento, provincia, distrito
+            ) VALUES (
+                :id, :ocid, :nom, :desc, :comp, 
+                :cat, :proc, :monto, :mon, 
+                :fecha, :estado, :ubic, 
+                :dept, :prov, :dist
+            )
+        """)
+        
+        ubicacion = f"{licitacion.departamento or ''} - {licitacion.provincia or ''} - {licitacion.distrito or ''}"
+        
+        db.execute(sql_header, {
+            "id": new_id,
+            "ocid": licitacion.ocid,
+            "nom": licitacion.nomenclatura,
+            "desc": licitacion.descripcion,
+            "comp": licitacion.comprador,
+            "cat": licitacion.categoria,
+            "proc": licitacion.tipo_procedimiento,
+            "monto": licitacion.monto_estimado,
+            "mon": licitacion.moneda,
+            "fecha": licitacion.fecha_publicacion,
+            "estado": licitacion.estado_proceso,
+            "ubic": ubicacion,
+            "dept": licitacion.departamento,
+            "prov": licitacion.provincia,
+            "dist": licitacion.distrito
+        })
+        
+        # 3. Insert Adjudicaciones
+        if licitacion.adjudicaciones:
+            sql_adj = text("""
+                INSERT INTO licitaciones_adjudicaciones (
+                    id_adjudicacion, id_convocatoria, ganador_nombre, ganador_ruc,
+                    monto_adjudicado, fecha_adjudicacion, estado_item, 
+                    entidad_financiera, tipo_garantia, id_contrato
+                ) VALUES (
+                    :id_adj, :id_conv, :nombre, :ruc, 
+                    :monto, :fecha, :estado, 
+                    :banco, :garantia, :contrato
+                )
+            """)
+            
+            for adj in licitacion.adjudicaciones:
+                adj_id = str(uuid.uuid4())
+                db.execute(sql_adj, {
+                    "id_adj": adj_id,
+                    "id_conv": new_id,
+                    "nombre": adj.ganador_nombre,
+                    "ruc": adj.ganador_ruc,
+                    "monto": adj.monto_adjudicado,
+                    "fecha": adj.fecha_adjudicacion,
+                    "estado": adj.estado_item,
+                    "banco": adj.entidad_financiera,
+                    "garantia": adj.tipo_garantia,
+                    "contrato": adj.id_contrato
+                })
+        
+        db.commit()
+        
+        # NOTIFICATION
+        try:
+            from app.routers.notifications import create_notification_internal
+            create_notification_internal(
+                title="Nueva Licitación Creada",
+                message=f"Se ha registrado una nueva licitación: {licitacion.descripcion[:50]}...",
+                type="licitacion",
+                priority="low",
+                link=f"/seace/search?id={new_id}"
+            )
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+
+        return {"message": "Success", "id": new_id}
+        
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+
+@router.put("/{id}")
+def update_licitacion(id: str, licitacion: LicitacionCreate, db: Session = Depends(get_db)):
+    """
+    Update existing licitacion (Raw SQL)
+    """
+    try:
+        # Detect State Change
+        old_state = "DESCONOCIDO"
+        try:
+            current = db.execute(text("SELECT estado_proceso FROM licitaciones_cabecera WHERE id_convocatoria = :id"), {"id": id}).fetchone()
+            if current:
+                old_state = current[0]
+        except:
+            pass
+            
+        # 1. Update Header
+        sql_header = text("""
+            UPDATE licitaciones_cabecera SET
+                ocid = :ocid, nomenclatura = :nom, descripcion = :desc, 
+                comprador = :comp, categoria = :cat, tipo_procedimiento = :proc, 
+                monto_estimado = :monto, moneda = :mon, fecha_publicacion = :fecha, 
+                estado_proceso = :estado, ubicacion_completa = :ubic, 
+                departamento = :dept, provincia = :prov, distrito = :dist
+            WHERE id_convocatoria = :id
+        """)
+        
+        ubicacion = f"{licitacion.departamento or ''} - {licitacion.provincia or ''} - {licitacion.distrito or ''}"
+        
+        result = db.execute(sql_header, {
+            "id": id,
+            "ocid": licitacion.ocid,
+            "nom": licitacion.nomenclatura,
+            "desc": licitacion.descripcion,
+            "comp": licitacion.comprador,
+            "cat": licitacion.categoria,
+            "proc": licitacion.tipo_procedimiento,
+            "monto": licitacion.monto_estimado,
+            "mon": licitacion.moneda,
+            "fecha": licitacion.fecha_publicacion,
+            "estado": licitacion.estado_proceso,
+            "ubic": ubicacion,
+            "dept": licitacion.departamento,
+            "prov": licitacion.provincia,
+            "dist": licitacion.distrito
+        })
+        
+        # 2. Handle Adjudicaciones (Simple Strategy: Delete All for this ID and Re-insert)
+        del_adj = text("DELETE FROM licitaciones_adjudicaciones WHERE id_convocatoria = :id")
+        db.execute(del_adj, {"id": id})
+        
+        # Re-insert
+        if licitacion.adjudicaciones:
+            sql_adj = text("""
+                INSERT INTO licitaciones_adjudicaciones (
+                    id_adjudicacion, id_convocatoria, ganador_nombre, ganador_ruc,
+                    monto_adjudicado, fecha_adjudicacion, estado_item, 
+                    entidad_financiera, tipo_garantia, id_contrato
+                ) VALUES (
+                    :id_adj, :id_conv, :nombre, :ruc, 
+                    :monto, :fecha, :estado, 
+                    :banco, :garantia, :contrato
+                )
+            """)
+            
+            import uuid
+            for adj in licitacion.adjudicaciones:
+                adj_id = str(uuid.uuid4()) # New ID for re-inserted items
+                db.execute(sql_adj, {
+                    "id_adj": adj_id,
+                    "id_conv": id,
+                    "nombre": adj.ganador_nombre,
+                    "ruc": adj.ganador_ruc,
+                    "monto": adj.monto_adjudicado,
+                    "fecha": adj.fecha_adjudicacion,
+                    "estado": adj.estado_item,
+                    "banco": adj.entidad_financiera,
+                    "garantia": adj.tipo_garantia,
+                    "contrato": adj.id_contrato
+                })
+        
+        db.commit()
+        
+        # NOTIFICATION (State Change)
+        try:
+            new_state = licitacion.estado_proceso
+            if old_state and new_state and old_state != new_state:
+                from app.routers.notifications import create_notification_internal
+                
+                # Fetch additional details for metadata
+                meta = {}
+                try:
+                    res = db.execute(text("SELECT categoria, ubicacion_completa, monto_estimado, ocid, departamento FROM licitaciones_cabecera WHERE id_convocatoria = :id"), {"id": id}).fetchone()
+                    if res:
+                        meta = {
+                            "categoria": res[0] or "GENERAL",
+                            "ubicacion": res[1] or res[4] or "PERU", 
+                            "monto": float(res[2] or 0),
+                            "orcid": res[3] or id,
+                            "estadoAnterior": old_state,
+                            "estadoNuevo": new_state,
+                            "licitacionId": id
+                        }
+                except:
+                    pass
+
+                # Format specific string for frontend parsing: "Estado cambiado: OLD -> NEW"
+                msg = f"Estado cambiado: {old_state} -> {new_state}"
+                
+                # Use Nomenclatura if available, else ID
+                ref_text = licitacion.nomenclatura or id
+                
+                create_notification_internal(
+                    title=f"Cambio de Estado: {ref_text}",
+                    message=msg,
+                    type="licitacion",
+                    priority="medium",
+                    link=f"/seace/busqueda?q={id}",
+                    metadata=meta
+                )
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+            
+        return {"message": "Updated successfully"}
+        
+    except Exception as e:
+        db.rollback()
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e)}
+
+@router.delete("/{id}")
+def delete_licitacion(id: str, db: Session = Depends(get_db)):
+    """
+    Delete licitacion and cascade (Raw SQL)
+    """
+    try:
+        # Get info for notification before delete
+        desc = "Licitación"
+        try:
+            row = db.execute(text("SELECT descripcion FROM licitaciones_cabecera WHERE id_convocatoria = :id"), {"id": id}).fetchone()
+            if row: desc = row[0][:50]
+        except: pass
+
+        # Delete Adjudicaciones First (Manual Cascade)
+        sql_del_adj = text("DELETE FROM licitaciones_adjudicaciones WHERE id_convocatoria = :id")
+        db.execute(sql_del_adj, {"id": id})
+        
+        # Delete Header
+        sql_del_head = text("DELETE FROM licitaciones_cabecera WHERE id_convocatoria = :id")
+        result = db.execute(sql_del_head, {"id": id})
+        
+        db.commit()
+        
+        # NOTIFICATION
+        try:
+            from app.routers.notifications import create_notification_internal
+            create_notification_internal(
+                title="Licitación Eliminada",
+                message=f"Se ha eliminado la licitación: {desc}",
+                type="system",
+                priority="high"
+            )
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+            
+        return {"message": "Deleted successfully"}
+    except Exception as e:
+        db.rollback()
         return {"error": str(e)}

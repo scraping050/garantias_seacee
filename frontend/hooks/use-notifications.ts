@@ -12,6 +12,7 @@ export interface Notification {
     title: string;
     message: string;
     link: string | null;
+    metadata?: any; // To support dynamic fields like categoria, monto, etc.
     is_read: boolean;
     created_at: string;
     expires_at: string | null;
@@ -109,7 +110,9 @@ export function useNotifications(autoRefreshSeconds: number = 30) {
 
         if (autoRefreshSeconds > 0) {
             const interval = setInterval(() => {
-                fetchUnreadCount(); // Solo actualizar contador para performance
+                // Fetch full list to ensure dropdown shows actual content when opened
+                // avoiding the "Badge says 3 but list is empty" bug
+                fetchNotifications();
             }, autoRefreshSeconds * 1000);
 
             return () => clearInterval(interval);

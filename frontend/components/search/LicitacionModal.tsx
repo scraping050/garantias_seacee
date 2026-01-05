@@ -7,9 +7,20 @@ interface LicitacionModalProps {
     onClose: () => void;
     licitacion?: Licitacion | null;
     onSave: (data: any) => void;
+    aseguradorasOptions?: string[]; // New
+    tipoGarantiaOptions?: string[]; // New
+    estadosOptions?: string[]; // New
 }
 
-export default function LicitacionModal({ isOpen, onClose, licitacion, onSave }: LicitacionModalProps) {
+export default function LicitacionModal({
+    isOpen,
+    onClose,
+    licitacion,
+    onSave,
+    aseguradorasOptions = [],
+    tipoGarantiaOptions = [],
+    estadosOptions = [] // New
+}: LicitacionModalProps) {
     const [activeTab, setActiveTab] = useState<'general' | 'adjudicaciones'>('general');
     const [formData, setFormData] = useState<Partial<Licitacion> & { adjudicaciones?: any[] }>({});
 
@@ -71,17 +82,27 @@ export default function LicitacionModal({ isOpen, onClose, licitacion, onSave }:
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[99999] p-4 animate-in fade-in duration-300">
-            <div className="bg-white dark:bg-[#111c44] rounded-2xl w-full max-w-4xl shadow-2xl shadow-indigo-500/10 border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 flex items-center justify-center z-[99999] pointer-events-none">
+            {/* Transparent backdrop - purely for clicking outside if needed, invisible to user */}
+            <div className="fixed inset-0 bg-transparent pointer-events-auto" onClick={onClose} aria-hidden="true" />
+
+            {/* Modal Container: 
+                - max-w-3xl (reduced width)
+                - No shadow check (removed shadow-*)
+                - No animation check (removed animate-*)
+                - Border slate-300 for definition
+                - Centered via flex parent + m-auto
+            */}
+            <div className="bg-white dark:bg-[#111c44] rounded-xl w-full max-w-3xl border border-slate-300 dark:border-slate-600 flex flex-col max-h-[85vh] pointer-events-auto relative z-10 m-auto">
 
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">
+                <div className="px-6 py-4 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                        <h2 className="text-lg font-bold text-slate-800 dark:text-white">
                             {licitacion ? 'Editar Licitación' : 'Nueva Licitación'}
                         </h2>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            {licitacion ? 'Modifique los detalles y adjudicaciones.' : 'Complete la información para registrar una nueva licitación.'}
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {licitacion ? 'Modifique los detalles y adjudicaciones.' : 'Complete la información.'}
                         </p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full text-slate-400 transition-colors">
@@ -116,177 +137,246 @@ export default function LicitacionModal({ isOpen, onClose, licitacion, onSave }:
                 {/* Content - Scrollable */}
                 <div className="flex-1 overflow-y-auto p-6">
 
+
                     {/* ===== GENERAL INFO TAB ===== */}
                     {activeTab === 'general' && (
-                        <div className="space-y-6">
+                        <div className="space-y-8 animate-in fade-in duration-300">
 
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Descripción *</label>
-                                <textarea
-                                    className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none h-24 placeholder:text-slate-400"
-                                    value={formData.descripcion || ''}
-                                    onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                                    placeholder="Ej: SERVICIO DE MANTENIMIENTO DE CARRETERAS..."
-                                />
-                            </div>
+                            {/* SECTION 1: IDENTIFICACIÓN */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
+                                    <Building2 className="w-4 h-4 text-indigo-500" />
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Identificación del Proceso</h3>
+                                </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Comprador *</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder:text-slate-400"
-                                        value={formData.comprador || ''}
-                                        onChange={(e) => setFormData({ ...formData, comprador: e.target.value })}
-                                        placeholder="Ej: MUNICIPALIDAD DISTRITAL DE..."
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Nomenclatura</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder:text-slate-400"
-                                        value={formData.nomenclatura || ''}
-                                        onChange={(e) => setFormData({ ...formData, nomenclatura: e.target.value })}
-                                        placeholder="Ej: LP-SM-2024-001"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">OCID</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder:text-slate-400"
-                                        value={formData.ocid || ''}
-                                        onChange={(e) => setFormData({ ...formData, ocid: e.target.value })}
-                                        placeholder="Ej: ocds-2024-..."
-                                    />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Departamento *</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder:text-slate-400"
-                                        value={formData.departamento || ''}
-                                        onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
-                                        placeholder="Ej: LIMA"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Provincia</label>
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                    <div className="md:col-span-8 space-y-1.5">
+                                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Comprador / Entidad *</label>
                                         <input
                                             type="text"
-                                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder:text-slate-400"
-                                            value={formData.provincia || ''}
-                                            onChange={(e) => setFormData({ ...formData, provincia: e.target.value })}
-                                            placeholder="Ej: LIMA"
+                                            className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300"
+                                            value={formData.comprador || ''}
+                                            onChange={(e) => setFormData({ ...formData, comprador: e.target.value })}
+                                            placeholder="Ej: MUNICIPALIDAD DISTRITAL DE..."
                                         />
                                     </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Distrito</label>
+                                    <div className="md:col-span-4 space-y-1.5">
+                                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Nomenclatura</label>
                                         <input
                                             type="text"
-                                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder:text-slate-400"
-                                            value={formData.distrito || ''}
-                                            onChange={(e) => setFormData({ ...formData, distrito: e.target.value })}
-                                            placeholder="Ej: MIRAFLORES"
+                                            className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300"
+                                            value={formData.nomenclatura || ''}
+                                            onChange={(e) => setFormData({ ...formData, nomenclatura: e.target.value })}
+                                            placeholder="Ej: LP-SM-2024-001"
+                                        />
+                                    </div>
+
+                                    <div className="md:col-span-12 space-y-1.5">
+                                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Descripción *</label>
+                                        <textarea
+                                            className="w-full p-3 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/30 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none resize-none h-20 placeholder:text-slate-300 leading-relaxed"
+                                            value={formData.descripcion || ''}
+                                            onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                                            placeholder="Ingrese la descripción detallada del objeto de contratación..."
                                         />
                                     </div>
                                 </div>
+                            </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Tipo Procedimiento</label>
-                                    <div className="relative">
+                            {/* SECTION 2: CLASIFICACIÓN Y ESTADO */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
+                                    <Trophy className="w-4 h-4 text-amber-500" />
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Clasificación y Estado</h3>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">OCID</label>
+                                        <input
+                                            type="text"
+                                            className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300 font-mono text-xs"
+                                            value={formData.ocid || ''}
+                                            onChange={(e) => setFormData({ ...formData, ocid: e.target.value })}
+                                            placeholder="ocds-..."
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Tipo Procedimiento</label>
                                         <select
-                                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none"
+                                            className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                             value={formData.tipo_procedimiento || ''}
                                             onChange={(e) => setFormData({ ...formData, tipo_procedimiento: e.target.value })}
                                         >
                                             <option value="">Seleccionar...</option>
                                             <option value="Licitacion Publica">Licitación Pública</option>
                                             <option value="Adjudicacion Simplificada">Adjudicación Simplificada</option>
+                                            <option value="Concurso Publico">Concurso Público</option>
                                         </select>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Estado Proceso *</label>
-                                    <select
-                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none"
-                                        value={formData.estado_proceso || 'CONVOCADO'}
-                                        onChange={(e) => setFormData({ ...formData, estado_proceso: e.target.value })}
-                                    >
-                                        <option value="CONVOCADO">CONVOCADO</option>
-                                        <option value="ADJUDICADO">ADJUDICADO</option>
-                                        <option value="CONTRATADO">CONTRATADO</option>
-                                        <option value="NULO">NULO</option>
-                                        <option value="DESIERTO">DESIERTO</option>
-                                    </select>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Categoría *</label>
-                                    <select
-                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none"
-                                        value={formData.categoria || 'BIENES'}
-                                        onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
-                                    >
-                                        <option value="BIENES">BIENES</option>
-                                        <option value="SERVICIOS">SERVICIOS</option>
-                                        <option value="OBRAS">OBRAS</option>
-                                        <option value="CONSULTORIA DE OBRAS">CONSULTORÍA DE OBRAS</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Monto Estimado</label>
-                                    <div className="flex gap-2">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Categoría</label>
                                         <select
-                                            className="w-24 p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                                            value={formData.moneda || 'PEN'}
-                                            onChange={(e) => setFormData({ ...formData, moneda: e.target.value })}
+                                            className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                            value={formData.categoria || 'BIENES'}
+                                            onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                                         >
-                                            <option value="PEN">PEN</option>
-                                            <option value="USD">USD</option>
+                                            <option value="BIENES">BIENES</option>
+                                            <option value="SERVICIOS">SERVICIOS</option>
+                                            <option value="OBRAS">OBRAS</option>
+                                            <option value="CONSULTORIA DE OBRAS">CONSULTORÍA</option>
                                         </select>
-                                        <input
-                                            type="number"
-                                            className="flex-1 p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                                            value={formData.monto_estimado || 0}
-                                            onChange={(e) => setFormData({ ...formData, monto_estimado: Number(e.target.value) })}
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Publicación</label>
-                                        <input
-                                            type="date"
-                                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                                            value={formData.fecha_publicacion?.split('T')[0] || ''}
-                                            onChange={(e) => setFormData({ ...formData, fecha_publicacion: e.target.value })}
-                                        />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Adjudicación (Est.)</label>
-                                        <input
-                                            type="date"
-                                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                                            value={formData.fecha_adjudicacion?.split('T')[0] || ''}
-                                            onChange={(e) => setFormData({ ...formData, fecha_adjudicacion: e.target.value })}
-                                        />
+                                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Estado Actual</label>
+                                        <select
+                                            className={`w-full p-2.5 rounded-lg border dark:border-slate-600 text-sm font-bold focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none
+                                                ${formData.estado_proceso === 'CONVOCADO' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                                    formData.estado_proceso === 'ADJUDICADO' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                        'bg-white text-slate-700 border-slate-200'}
+                                            `}
+                                            value={formData.estado_proceso || 'CONVOCADO'}
+                                            onChange={(e) => setFormData({ ...formData, estado_proceso: e.target.value })}
+                                        >
+                                            <option value="">Seleccionar...</option>
+                                            {estadosOptions.length > 0 ? (
+                                                estadosOptions.map((est: string, i: number) => (
+                                                    <option key={i} value={est}>{est}</option>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <option value="CONVOCADO">CONVOCADO</option>
+                                                    <option value="ADJUDICADO">ADJUDICADO</option>
+                                                    <option value="CONTRATADO">CONTRATADO</option>
+                                                    <option value="NULO">NULO</option>
+                                                    <option value="DESIERTO">DESIERTO</option>
+                                                </>
+                                            )}
+                                        </select>
                                     </div>
                                 </div>
                             </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* SECTION 3: UBICACIÓN */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
+                                        <MapPin className="w-4 h-4 text-rose-500" />
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Ubicación Geográfica</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Departamento</label>
+                                            <input
+                                                className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                value={formData.departamento || ''}
+                                                onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
+                                                placeholder="Ej: LIMA"
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Provincia</label>
+                                                <input
+                                                    className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                    value={formData.provincia || ''}
+                                                    onChange={(e) => setFormData({ ...formData, provincia: e.target.value })}
+                                                    placeholder="Ej: LIMA"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Distrito</label>
+                                                <input
+                                                    className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                    value={formData.distrito || ''}
+                                                    onChange={(e) => setFormData({ ...formData, distrito: e.target.value })}
+                                                    placeholder="Ej: MIRAFLORES"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* SECTION 4: DATOS ECONÓMICOS */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-white/5">
+                                        <DollarSign className="w-4 h-4 text-emerald-500" />
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">Datos Económicos</h3>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Monto Estimado</label>
+                                                <div className="flex rounded-lg shadow-sm">
+                                                    <select
+                                                        className="px-3 py-2.5 rounded-l-lg border border-r-0 border-slate-200 bg-slate-50 text-slate-600 text-sm font-bold focus:ring-0 outline-none"
+                                                        value={formData.moneda || 'PEN'}
+                                                        onChange={(e) => setFormData({ ...formData, moneda: e.target.value })}
+                                                    >
+                                                        <option value="PEN">S/</option>
+                                                        <option value="USD">$</option>
+                                                    </select>
+                                                    <input
+                                                        type="number"
+                                                        className="flex-1 p-2.5 rounded-r-lg border border-slate-200 font-mono text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                        value={formData.monto_estimado || 0}
+                                                        onChange={(e) => setFormData({ ...formData, monto_estimado: Number(e.target.value) })}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Tipo Garantía</label>
+                                                <select
+                                                    className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                    value={formData.tipo_garantia || ''}
+                                                    onChange={(e) => setFormData({ ...formData, tipo_garantia: e.target.value })}
+                                                >
+                                                    <option value="">Seleccionar...</option>
+                                                    {tipoGarantiaOptions.map((opt, i) => (
+                                                        <option key={i} value={opt}>{opt}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Aseguradora / Entidad Financiera</label>
+                                            <select
+                                                className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                value={formData.entidades_financieras || ''}
+                                                onChange={(e) => setFormData({ ...formData, entidades_financieras: e.target.value })}
+                                            >
+                                                <option value="">Seleccionar...</option>
+                                                {aseguradorasOptions.map((opt, i) => (
+                                                    <option key={i} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">F. Publicación</label>
+                                                <input
+                                                    type="date"
+                                                    className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                                    value={formData.fecha_publicacion?.split('T')[0] || ''}
+                                                    onChange={(e) => setFormData({ ...formData, fecha_publicacion: e.target.value })}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">F. Adjudicación</label>
+                                                <input
+                                                    type="date"
+                                                    className="w-full p-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                                    value={formData.fecha_adjudicacion?.split('T')[0] || ''}
+                                                    onChange={(e) => setFormData({ ...formData, fecha_adjudicacion: e.target.value })}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     )}
 
@@ -495,10 +585,10 @@ export default function LicitacionModal({ isOpen, onClose, licitacion, onSave }:
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-slate-100 dark:border-white/10 flex items-center justify-end gap-3 bg-slate-50/50 dark:bg-slate-900/20">
+                <div className="p-6 border-t border-slate-100 dark:border-white/10 flex items-center justify-end gap-3 bg-white dark:bg-[#111c44]">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-white/10 transition-colors text-sm"
+                        className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-white/10 transition-colors text-sm"
                     >
                         Cancelar
                     </button>

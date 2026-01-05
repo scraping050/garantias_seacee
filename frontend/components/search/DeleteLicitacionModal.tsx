@@ -16,8 +16,11 @@ export default function DeleteLicitacionModal({ isOpen, onClose, licitacion, onC
     if (!isOpen || !licitacion) return null;
 
     return (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[99999] p-4 animate-in fade-in duration-300">
-            <div className="bg-white dark:bg-[#111c44] rounded-2xl w-full max-w-md shadow-2xl shadow-red-500/10 border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 flex items-center justify-center z-[99999] pointer-events-none">
+            {/* Transparent backdrop for click-outside closing */}
+            <div className="fixed inset-0 bg-transparent pointer-events-auto" onClick={onClose} aria-hidden="true" />
+
+            <div className="bg-white dark:bg-[#111c44] rounded-2xl w-full max-w-md shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] dark:shadow-black/50 border-2 border-slate-200 dark:border-slate-600 overflow-hidden animate-in zoom-in-95 duration-200 pointer-events-auto relative z-10">
 
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex items-center justify-between">

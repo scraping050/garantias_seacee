@@ -20,8 +20,27 @@ export const licitacionService = {
     },
 
     // Get filter options
-    getFilters: async () => {
-        const response = await api.get('/api/licitaciones/filters/all');
+    getFilters: async (filters: SearchFilters = {}) => {
+        const params: any = { ...filters };
+        const response = await api.get('/api/licitaciones/filters/all', { params });
+        return response.data;
+    },
+
+    // Get Autocomplete Suggestions
+    getAutocomplete: async (query: string) => {
+        const response = await api.get('/api/licitaciones/suggestions', {
+            params: { query }
+        });
+        return response.data;
+    },
+
+    // Get cascading locations
+    getLocations: async (departamento: string, provincia?: string) => {
+        const params: any = {};
+        if (departamento) params.departamento = departamento;
+        if (provincia) params.provincia = provincia;
+
+        const response = await api.get('/api/licitaciones/locations', { params });
         return response.data;
     },
 

@@ -26,6 +26,16 @@ export interface Licitacion {
     banco?: string;
     fecha_adjudicacion?: string;
     id_contrato?: string;
+
+    // Campos para Consorcios
+    miembros_consorcio?: MiembroConsorcio[];
+}
+
+export interface MiembroConsorcio {
+    nombre_miembro: string;
+    ruc_miembro: string;
+    porcentaje_participacion: number;
+    monto_participacion?: number;
 }
 
 export interface Adjudicacion {

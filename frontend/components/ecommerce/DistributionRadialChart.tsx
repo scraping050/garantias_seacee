@@ -101,7 +101,7 @@ export const DistributionRadialChart: React.FC<DistributionRadialChartProps> = (
                     options={options}
                     series={chartPercentages}
                     type="radialBar"
-                    height={320}
+                    height={250}
                     width="100%"
                 />
             </div>

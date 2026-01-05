@@ -25,6 +25,11 @@ export const AutocompleteSearch: React.FC<AutocompleteSearchProps> = ({
     initialValue = ""
 }) => {
     const [query, setQuery] = useState(initialValue);
+
+    // Sync with parent changes (e.g. when clearing filters)
+    useEffect(() => {
+        setQuery(initialValue);
+    }, [initialValue]);
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [loading, setLoading] = useState(false);
     const [isOpen, setIsOpen] = useState(false);

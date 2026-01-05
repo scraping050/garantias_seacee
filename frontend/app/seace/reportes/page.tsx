@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { licitacionService } from "@/lib/services/licitacionService";
 import { LicitacionCard } from "@/components/search/LicitacionCard";
+import { AutocompleteSearch } from "@/components/search/AutocompleteSearch";
 import type { Licitacion } from "@/types/licitacion";
 
 export default function GeneradorReportesPage() {
@@ -330,16 +331,11 @@ export default function GeneradorReportesPage() {
                         </div>
 
                         {/* Search Bar */}
-                        <div className="relative mb-8 group">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <Search className="h-5 w-5 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
-                            </div>
-                            <input
-                                type="text"
-                                className="block w-full pl-11 pr-4 py-3.5 rounded-xl border border-slate-200 text-sm font-medium placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all bg-white dark:bg-[#111c44] dark:border-slate-700 dark:text-white"
+                        <div className="mb-8">
+                            <AutocompleteSearch
+                                onSearch={setSearchTerm}
+                                initialValue={searchTerm}
                                 placeholder="Buscar por descripción, comprador, nomenclatura, ganador, banco..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
 
@@ -411,8 +407,8 @@ export default function GeneradorReportesPage() {
                                             className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-4 pr-8 text-sm font-semibold text-slate-700 focus:border-indigo-500 focus:ring-0 outline-none dark:bg-[#111c44] dark:border-slate-700 dark:text-slate-300"
                                         >
                                             <option value="">Año</option>
-                                            {/* Hardcoded recent years */}
-                                            {["2026", "2025", "2024"].map((item) => (
+                                            {/* Dynamic years */}
+                                            {filterOptions.anios.map((item: number) => (
                                                 <option key={item} value={item}>{item}</option>
                                             ))}
                                         </select>

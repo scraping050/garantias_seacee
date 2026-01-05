@@ -14,59 +14,50 @@ import {
     ArrowRight
 } from "lucide-react";
 import { type Notificacion, type EstadoLicitacion } from "@/types/notificacion";
+import { useNotifications } from "@/hooks/use-notifications"; // Import hook
 
 export default function NotificacionesPage() {
     const [filter, setFilter] = useState<'TODOS' | 'NO_LEIDOS' | 'LEIDOS'>('NO_LEIDOS');
 
-    // Mock Data basado en las imágenes
-    const [notificaciones, setNotificaciones] = useState<Notificacion[]>([
-        {
-            id: "1",
-            titulo: "Cambio de Estado: CONTRATADO",
-            mensaje: "La licitación \"PRUEBA PARA VERIFICAR EL FUNCIONAMIENTO DE NOTIFIC...\" ha cambiado su estado de NULO a CONTRATADO.",
-            fecha: "2026-01-01T17:49:00",
-            estado: "NO_LEIDO",
-            licitacionId: "1062306",
-            orcid: "MAN-1767270032440-776",
-            categoria: "BIENES",
-            ubicacion: "AREQUIPA",
-            monto: 75000,
-            estadoAnterior: "NULO",
-            estadoNuevo: "CONTRATADO"
-        },
-        {
-            id: "2",
-            titulo: "Cambio de Estado: NULO",
-            mensaje: "La licitación \"TEST VALIDACION ESTRICTA - NATIVE\" ha cambiado su estado de CONTRATADO a NULO.",
-            fecha: "2026-01-01T17:45:00",
-            estado: "NO_LEIDO",
-            licitacionId: "1062307",
-            orcid: "MAN-1767270032440-776",
-            categoria: "BIENES",
-            ubicacion: "AREQUIPA",
-            monto: 75000,
-            estadoAnterior: "CONTRATADO",
-            estadoNuevo: "NULO"
-        }
-    ]);
+    // Use the real hook
+    const {
+        notifications: realNotifications,
+        markAsRead: apiMarkAsRead,
+        markAllAsRead: apiMarkAllAsRead,
+        deleteNotification: apiDeleteNotification
+    } = useNotifications(5); // Refresh every 5s
 
-    const items = notificaciones.filter(n => {
+    // Transform API notification to UI format if needed, or use directly
+    // The UI uses: id, titulo, mensaje, fecha, estado ('NO_LEIDO'|'LEIDO'), metadata fields
+    const items = realNotifications.filter((n: any) => {
         if (filter === 'TODOS') return true;
-        if (filter === 'NO_LEIDOS') return n.estado === 'NO_LEIDO';
-        if (filter === 'LEIDOS') return n.estado === 'LEIDO';
+        if (filter === 'NO_LEIDOS') return !n.is_read;
+        if (filter === 'LEIDOS') return n.is_read;
         return true;
-    });
+    }).map((n: any) => ({
+        ...n,
+        // Map hook 'is_read' to local 'estado' string just for compatibility with existing UI logic below
+        estado: n.is_read ? 'LEIDO' : 'NO_LEIDO',
+        // Extract metadata
+        categoria: n.metadata?.categoria || 'GENERAL',
+        ubicacion: n.metadata?.ubicacion || 'PERU',
+        monto: n.metadata?.monto || 0,
+        estadoAnterior: n.metadata?.estadoAnterior || null,
+        estadoNuevo: n.metadata?.estadoNuevo || null,
+        licitacionId: n.metadata?.licitacionId || '#',
+        orcid: n.metadata?.orcid || ''
+    }));
 
     const markAllAsRead = () => {
-        setNotificaciones(prev => prev.map(n => ({ ...n, estado: 'LEIDO' })));
+        apiMarkAllAsRead();
     };
 
-    const markAsRead = (id: string) => {
-        setNotificaciones(prev => prev.map(n => n.id === id ? { ...n, estado: 'LEIDO' } : n));
+    const markAsRead = (id: number) => {
+        apiMarkAsRead(id);
     };
 
-    const deleteNotification = (id: string) => {
-        setNotificaciones(prev => prev.filter(n => n.id !== id));
+    const deleteNotification = (id: number) => {
+        apiDeleteNotification(id);
     };
 
     const formatCurrency = (val?: number) => new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', maximumFractionDigits: 0 }).format(val || 0);

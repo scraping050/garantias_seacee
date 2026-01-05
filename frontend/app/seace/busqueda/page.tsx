@@ -5,6 +5,7 @@ import { LicitacionCard } from "@/components/search/LicitacionCard";
 import { AutocompleteSearch } from "@/components/search/AutocompleteSearch";
 import type { Licitacion } from "@/types/licitacion";
 import { licitacionService } from "@/lib/services/licitacionService";
+import { useSearchParams } from "next/navigation";
 import {
     Search,
     ChevronUp,
@@ -50,7 +51,9 @@ export default function BusquedaLicitacionesPage() {
     const [totalPages, setTotalPages] = useState(0);
     const [totalItems, setTotalItems] = useState(0);
 
-    // Initial Load: Fetch Global Filters
+    // Initial Load: Fetch Global Filters & URL Params
+    const searchParams = useSearchParams();
+
     useEffect(() => {
         const loadFilters = async () => {
             try {
@@ -69,50 +72,59 @@ export default function BusquedaLicitacionesPage() {
             }
         };
         loadFilters();
-    }, []);
+
+        // Check URL params
+        const q = searchParams.get('q') || searchParams.get('search');
+        if (q) {
+            setSearchTerm(q);
+        }
+    }, [searchParams]);
 
     // Cascading: Load Provincias when Departamento changes
-    const handleDepartamentoChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const dept = e.target.value;
-        setDepartamento(dept);
-
-        // Reset children
-        setProvincia("");
-        setDistrito("");
-        setProvinciaOptions([]);
-        setDistritoOptions([]);
-
-        if (dept) {
-            try {
-                const data = await licitacionService.getLocations(dept);
-                if (data.provincias) {
-                    setProvinciaOptions(data.provincias);
+    useEffect(() => {
+        const fetchProvincias = async () => {
+            setProvinciaOptions([]);
+            if (departamento) {
+                try {
+                    const data = await licitacionService.getLocations(departamento);
+                    if (data.provincias) {
+                        setProvinciaOptions(data.provincias);
+                    }
+                } catch (error) {
+                    console.error("Error loading provincias:", error);
                 }
-            } catch (error) {
-                console.error("Error loading provincias:", error);
             }
-        }
-    };
+        };
+        fetchProvincias();
+    }, [departamento]);
 
     // Cascading: Load Distritos when Provincia changes
-    const handleProvinciaChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const prov = e.target.value;
-        setProvincia(prov);
-
-        // Reset children
-        setDistrito("");
-        setDistritoOptions([]);
-
-        if (prov && departamento) {
-            try {
-                const data = await licitacionService.getLocations(departamento, prov);
-                if (data.distritos) {
-                    setDistritoOptions(data.distritos);
+    useEffect(() => {
+        const fetchDistritos = async () => {
+            setDistritoOptions([]);
+            if (provincia && departamento) {
+                try {
+                    const data = await licitacionService.getLocations(departamento, provincia);
+                    if (data.distritos) {
+                        setDistritoOptions(data.distritos);
+                    }
+                } catch (error) {
+                    console.error("Error loading distritos:", error);
                 }
-            } catch (error) {
-                console.error("Error loading distritos:", error);
             }
-        }
+        };
+        fetchDistritos();
+    }, [provincia, departamento]);
+
+    const handleDepartamentoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setDepartamento(e.target.value);
+        setProvincia("");
+        setDistrito("");
+    };
+
+    const handleProvinciaChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setProvincia(e.target.value);
+        setDistrito("");
     };
 
     const fetchLicitaciones = async () => {
@@ -276,7 +288,7 @@ export default function BusquedaLicitacionesPage() {
                                             value={anio} onChange={(e) => setAnio(e.target.value)}
                                         >
                                             <option value="">Año</option>
-                                            {["2026", "2025", "2024"].map(opt => (
+                                            {anioOptions.map(opt => (
                                                 <option key={opt} value={opt}>{opt}</option>
                                             ))}
                                         </select>

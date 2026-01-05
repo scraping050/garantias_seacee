@@ -13,7 +13,8 @@ import {
     Award,
     CheckCircle2,
     StickyNote,
-    User
+    User,
+    Users
 } from "lucide-react";
 import type { Licitacion } from "@/types/licitacion";
 
@@ -344,6 +345,40 @@ export const LicitacionCard: React.FC<Props> = ({
                 )}
 
             </div>
+
+            {/* SECCION CONSORCIO (New) */}
+            {licitacion.miembros_consorcio && licitacion.miembros_consorcio.length > 0 && (
+                <div className="mx-5 mb-4 mt-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="flex items-center gap-2 mb-3">
+                        <Users className="w-4 h-4 text-slate-500" />
+                        <h4 className="text-xs font-bold text-slate-700 uppercase">Detalle de Miembros del Consorcio</h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {licitacion.miembros_consorcio.map((miembro, idx) => (
+                            <div key={idx} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-bold">
+                                        {miembro.porcentaje_participacion.toFixed(2)}%
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-mono">
+                                        {miembro.ruc_miembro}
+                                    </span>
+                                </div>
+                                <p className="text-xs font-bold text-slate-800 mb-2 line-clamp-1" title={miembro.nombre_miembro}>
+                                    {miembro.nombre_miembro}
+                                </p>
+                                {/* Progress Bar */}
+                                <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-indigo-600 rounded-full"
+                                        style={{ width: `${miembro.porcentaje_participacion}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* FOOTER BUTTON - Full Width Block */}
             <div className="mt-4">

@@ -74,8 +74,8 @@ export default function EcommerceDashboardPage() {
                 }));
 
                 const transformedMonthlyTrend = (trend.data || []).map((item: any) => ({
-                    month: item.month || item.name,
-                    total: item.total || item.count || item.value || 0
+                    month: item.name,
+                    total: item.count
                 }));
 
                 // Debug transformed data
@@ -134,51 +134,42 @@ export default function EcommerceDashboardPage() {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        {/* Removed redundant Bell button */}
+                        <button className="p-2 rounded-full hover:bg-white dark:hover:bg-[#111c44] text-slate-500 dark:text-slate-400 transition-colors">
+                            <Bell className="h-5 w-5" />
+                        </button>
                     </div>
                 </div>
 
                 {/* --- Main Dashboard Grid --- */}
-                <div className="space-y-6">
-
-                    {/* ROW 1: Key Metrics (Full Width) */}
-                    <div>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Left Column: Metrics & Statistics Line Chart */}
+                    <div className="lg:col-span-8 space-y-6">
                         <EcommerceMetrics
                             licitaciones={data.kpis?.total_licitaciones}
                             monto={data.kpis?.monto_total_adjudicado}
                         />
+                        {/* Replaced StatusChart with SalesAreaChart (Line Chart) */}
+                        <SalesAreaChart
+                            data={data.monthlyTrend}
+                            selectedYear={selectedYear}
+                            onYearChange={setSelectedYear}
+                        />
                     </div>
 
-                    {/* ROW 2: Charts (Trend + Distribution) */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                        {/* Left: Monthly Trend (Main Chart) */}
-                        <div className="lg:col-span-8 h-[500px]">
-                            <SalesAreaChart
-                                data={data.monthlyTrend}
-                                selectedYear={selectedYear}
-                                onYearChange={setSelectedYear}
-                            />
-                        </div>
-
-                        {/* Right: Distribution (Radial) */}
-                        <div className="lg:col-span-4 h-[500px]">
-                            <DistributionRadialChart data={data.distribution} />
-                        </div>
+                    {/* Right Column: Distribution (Full Height) */}
+                    <div className="lg:col-span-4">
+                        <DistributionRadialChart data={data.distribution} />
                     </div>
+                </div>
 
-                    {/* ROW 3: Detailed Tables */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        {/* Left: Department Ranking (Narrower) */}
-                        <div className="lg:col-span-4">
-                            <DepartmentRanking data={data.departmentRanking} />
-                        </div>
-
-                        {/* Right: Financial Entities (Wider) */}
-                        <div className="lg:col-span-8">
-                            <FinancialEntitiesTable data={data.financialEntities} />
-                        </div>
+                {/* --- ROW 4: Department Ranking + Financial Entities --- */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-12">
+                    <div className="lg:col-span-4">
+                        <DepartmentRanking data={data.departmentRanking} />
                     </div>
-
+                    <div className="lg:col-span-8">
+                        <FinancialEntitiesTable data={data.financialEntities} />
+                    </div>
                 </div>
 
             </div>

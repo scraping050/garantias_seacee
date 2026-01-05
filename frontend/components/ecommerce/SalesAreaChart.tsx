@@ -13,8 +13,15 @@ interface SalesAreaChartProps {
 }
 
 export const SalesAreaChart: React.FC<SalesAreaChartProps> = ({ data = [], selectedYear, onYearChange }) => {
-    const categories = data.map(item => item.month);
-    const seriesData = data.map(item => item.total);
+    // Normalize data to ensure 12 months always exist (fixes undefined errors and empty charts)
+    const allMonths = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+    // Create a map for quick lookup
+    const dataMap = new Map(data.map(item => [item.month, item.total]));
+
+    // Generate complete 12-month arrays
+    const categories = allMonths;
+    const seriesData = allMonths.map(m => dataMap.get(m) || 0);
 
     const options: ApexOptions = {
         chart: {
@@ -27,7 +34,7 @@ export const SalesAreaChart: React.FC<SalesAreaChartProps> = ({ data = [], selec
         stroke: {
             curve: "smooth",
             width: 3,
-            colors: ["#6366f1"] // Indigo-500
+            colors: ["#6366f1"]
         },
         colors: ["#6366f1"],
         fill: {
@@ -44,7 +51,7 @@ export const SalesAreaChart: React.FC<SalesAreaChartProps> = ({ data = [], selec
             axisBorder: { show: false },
             axisTicks: { show: false },
             labels: {
-                style: { colors: "#94a3b8", fontSize: '12px', fontWeight: 500 }, // slate-400
+                style: { colors: "#94a3b8", fontSize: '12px', fontWeight: 500 },
                 offsetY: 0
             },
             tooltip: { enabled: false }
@@ -56,6 +63,8 @@ export const SalesAreaChart: React.FC<SalesAreaChartProps> = ({ data = [], selec
                 offsetX: -10,
                 formatter: (value) => value.toFixed(0)
             },
+            min: 0, // Force y-axis to start at 0
+            forceNiceScale: true
         },
         grid: {
             show: true,
@@ -68,12 +77,31 @@ export const SalesAreaChart: React.FC<SalesAreaChartProps> = ({ data = [], selec
         dataLabels: { enabled: false },
         tooltip: {
             theme: 'light',
+            custom: function ({ series, seriesIndex, dataPointIndex, w }: any) {
+                // Safety checks
+                if (!series || !series[seriesIndex] || series[seriesIndex][dataPointIndex] === undefined) {
+                    return '';
+                }
+
+                const value = series[seriesIndex][dataPointIndex];
+                const month = w?.globals?.labels?.[dataPointIndex] ?? '';
+
+                return `
+                    <div class="px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-lg rounded-lg">
+                        <div class="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold mb-1">${month}</div>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                            <span class="text-sm font-bold text-slate-900 dark:text-white">${value} Licitaciones</span>
+                        </div>
+                    </div>
+                `;
+            },
             y: {
                 formatter: function (val) {
                     return val + " Licitaciones"
                 }
             },
-            marker: { show: true },
+            marker: { show: false },
         },
         markers: { size: 0, hover: { size: 5, sizeOffset: 3 } }
     };
@@ -85,8 +113,8 @@ export const SalesAreaChart: React.FC<SalesAreaChartProps> = ({ data = [], selec
     const years = [2024, 2025, 2026];
 
     return (
-        <div className="rounded-2xl bg-white dark:bg-[#111c44] p-6 shadow-sm border border-slate-100 dark:border-white/5 transition-colors duration-300">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="rounded-2xl bg-white dark:bg-[#111c44] p-6 shadow-sm border border-slate-100 dark:border-white/5 transition-colors duration-300 h-full flex flex-col">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 shrink-0">
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Estadísticas</h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Total de licitaciones por mes</p>
@@ -106,8 +134,8 @@ export const SalesAreaChart: React.FC<SalesAreaChartProps> = ({ data = [], selec
                     ))}
                 </div>
             </div>
-            <div className="h-[320px] w-full -ml-2">
-                <ReactApexChart options={options} series={series} type="area" height={300} />
+            <div className="flex-1 w-full -ml-2 min-h-0 relative">
+                <ReactApexChart options={options} series={series} type="area" height="100%" />
             </div>
         </div>
     );
