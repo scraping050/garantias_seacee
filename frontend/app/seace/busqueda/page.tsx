@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { LicitacionCard } from "@/components/search/LicitacionCard";
 import { AutocompleteSearch } from "@/components/search/AutocompleteSearch";
 import type { Licitacion } from "@/types/licitacion";
@@ -13,7 +13,7 @@ import {
     RotateCcw
 } from "lucide-react";
 
-export default function BusquedaLicitacionesPage() {
+function BusquedaContent() {
     // Filter State (Matching Gestion Manual & Reportes)
     const [showFilters, setShowFilters] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -481,5 +481,15 @@ export default function BusquedaLicitacionesPage() {
 
             </div>
         </div>
+    );
+}
+
+export default function BusquedaLicitacionesPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0b122b]">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>}>
+            <BusquedaContent />
+        </Suspense>
     );
 }
