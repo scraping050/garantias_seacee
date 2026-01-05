@@ -199,7 +199,7 @@ export default function GestionManualPage() {
     };
 
     const handleConfirmDelete = async (authCode: string) => {
-        if (authCode === '123456') { // Mock auth
+        if (authCode === '123123') { // Auth code changed to 123123
             if (licitacionToDelete) {
                 try {
                     await licitacionService.delete(licitacionToDelete.id_convocatoria);
