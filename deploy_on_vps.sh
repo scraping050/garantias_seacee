@@ -32,10 +32,11 @@ npm run build
 
 echo ""
 echo "==================================================="
+echo "==================================================="
 echo "5. Reiniciando servicios PM2..."
 echo "==================================================="
-pm2 restart fastapi-mcqs
-pm2 restart nextjs-mcqs
+pm2 restart backend-api
+pm2 restart frontend-next
 
 echo ""
 echo "==================================================="
@@ -45,4 +46,4 @@ pm2 status
 
 echo ""
 echo "✅ DESPLIEGUE COMPLETADO"
-echo "Abre: https://mcqs-jcq.cloud"
+echo "Abre: https://mcqs-jcq.com"
