@@ -144,7 +144,40 @@ def get_all_filters(db: Session = Depends(get_db)):
                     if clean_p:
                         aseguradoras_set.add(clean_p)
         
-        aseguradoras = sorted(list(aseguradoras_set))
+        # Normalization Logic
+        normalization_map = {
+            "SCOTIABANK": "SCOTIABANK",
+            "BBVA": "BBVA",
+            "CREDITO": "BCP",
+            "BCP": "BCP",
+            "INTERBANK": "INTERBANK",
+            "CESCE": "CESCE",
+            "MAPFRE": "MAPFRE",
+            "SECREX": "SECREX",
+            "POSITIVA": "LA POSITIVA",
+            "RIMAC": "RIMAC",
+            "INSUR": "INSUR",
+            "CRECER": "CRECER",
+            "AVLA": "AVLA",
+            "MUNDIAL": "MUNDIAL",
+            "LIBERTY": "LIBERTY",
+            "CITI": "CITIBANK",
+            "CHUBB": "CHUBB",
+            "CARDIF": "CARDIF",
+            "OH": "FINANCIERA OH",
+            "CONFIANZA": "FINANCIERA CONFIANZA"
+        }
+        
+        normalized_set = set()
+        for name in aseguradoras_set:
+            mapped_name = name # Default to original
+            for key, canonical in normalization_map.items():
+                if key in name: 
+                    mapped_name = canonical
+                    break
+            normalized_set.add(mapped_name)
+
+        aseguradoras = sorted(list(normalized_set))
         if not aseguradoras: aseguradoras = DEFAULTS["aseguradoras"]
         
         return {
