@@ -131,8 +131,20 @@ def get_all_filters(db: Session = Depends(get_db)):
         if not estados: estados = DEFAULTS["estados"]
 
         # 4. Aseguradoras in adjudicaciones
-        asegs = db.execute(text("SELECT DISTINCT UPPER(TRIM(entidad_financiera)) FROM licitaciones_adjudicaciones WHERE entidad_financiera IS NOT NULL AND TRIM(entidad_financiera) != '' ORDER BY 1")).fetchall()
-        aseguradoras = [r[0] for r in asegs if r[0]]
+        asegs_raw = db.execute(text("SELECT DISTINCT UPPER(TRIM(entidad_financiera)) FROM licitaciones_adjudicaciones WHERE entidad_financiera IS NOT NULL AND TRIM(entidad_financiera) != ''")).fetchall()
+        
+        aseguradoras_set = set()
+        for r in asegs_raw:
+            val = r[0]
+            if val:
+                # Split by '|' to handle consortiums like "AVLA | CESCE"
+                parts = val.split('|')
+                for p in parts:
+                    clean_p = p.strip()
+                    if clean_p:
+                        aseguradoras_set.add(clean_p)
+        
+        aseguradoras = sorted(list(aseguradoras_set))
         if not aseguradoras: aseguradoras = DEFAULTS["aseguradoras"]
         
         return {
