@@ -13,7 +13,11 @@ export const metadata: Metadata = {
         template: '%s | MCQS'
     },
     description: 'MCQS: Las grandes obras empiezan aquí. Michael Cesar Quispe Sebastian te conecta con las mejores estrategias en garantías y licitaciones para potenciar tu crecimiento en el sector.',
-    keywords: ['MCQS', 'Garantías', 'Licitaciones', 'Obra', 'Michael Cesar Quispe Sebastian', 'JCQ', 'Consultoría', 'Construcción'],
+    keywords: [
+        'MCQS', 'JCQ', 'MCQS-JCQ',
+        'Michael Cesar Quispe Sebastian', 'Michael Cesar', 'Michael Quispe', 'Michael Quispe Sebastian',
+        'Garantías', 'Licitaciones', 'Obra', 'Consultoría', 'Construcción'
+    ],
     authors: [{ name: 'Michael Cesar Quispe Sebastian' }],
     creator: 'MCQS',
     icons: {
