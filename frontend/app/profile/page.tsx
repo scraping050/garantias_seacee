@@ -9,22 +9,27 @@ import { PinVerificationModal } from '@/components/admin/pin-verification-modal'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { api } from '@/lib/api';
 
+import { useAuthProtection } from '@/hooks/use-auth-protection';
+
 export default function ProfilePage() {
+    const { isAuthenticated, loading: authLoading } = useAuthProtection();
     const [user, setUser] = useState<any>(null);
     const [activeSection, setActiveSection] = useState<'info' | 'security' | 'admin'>('info');
     const [loading, setLoading] = useState(true);
     const [showDeleteAvatarModal, setShowDeleteAvatarModal] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        if (!isAuthenticated) return;
         // Load user from local storage
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             setUser(JSON.parse(storedUser));
         }
         setLoading(false);
-    }, []);
+    }, [isAuthenticated]);
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    if (authLoading || !isAuthenticated) return null;
 
     const handleAvatarClick = () => {
         fileInputRef.current?.click();
@@ -69,18 +74,19 @@ export default function ProfilePage() {
 
     if (loading) return null;
 
-    const isAdminOrDirector = user?.role === 'admin' || user?.role === 'director' || user?.role === 'DIRECTOR' || user?.role === 'ADMIN';
+    const isAdminOrDirector = ['admin', 'director', 'DIRECTOR', 'ADMIN'].includes(user?.role);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] pb-20">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0b122b] pb-20 transition-colors duration-300">
             {/* Header */}
-            <div className="bg-[#0F2C4A] h-64 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#0F2C4A] via-[#133657] to-[#0F2C4A] h-72 relative">
                 <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30"></div>
-                <div className="container mx-auto px-6 h-full flex items-center justify-between relative z-10">
-                    <div className="mt-[-2rem]">
-                        <h1 className="text-4xl font-bold text-white mb-2">Mi Perfil</h1>
-                        <p className="text-blue-200">Gestiona tu información personal y seguridad de la cuenta.</p>
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
+                <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(96, 165, 250, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)' }}></div>
+                <div className="container mx-auto px-6 h-full flex items-center justify-between relative z-30">
+                    <div className="mt-[-1rem]">
+                        <h1 className="text-4xl font-extrabold text-white mb-3 tracking-tight drop-shadow-lg">Mi Perfil</h1>
+                        <p className="text-blue-100 font-medium text-lg">Gestiona tu información personal y seguridad de la cuenta.</p>
                     </div>
                     <div className="hidden md:block">
                         <HeaderActions />
@@ -88,13 +94,13 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            <div className="container mx-auto px-6 -mt-20 relative z-20">
-                <div className="flex flex-col md:flex-row gap-8">
+            <div className="container mx-auto px-6 -mt-24 relative z-10">
+                <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
                     {/* Sidebar / Profile Card */}
-                    <div className="w-full md:w-80 flex-shrink-0">
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-100 dark:border-slate-700">
-                            <div className="p-8 flex flex-col items-center border-b border-slate-100 dark:border-slate-700">
-                                <div className="w-32 h-32 rounded-full bg-slate-100 dark:bg-slate-700 p-1.5 shadow-2xl relative group mb-4">
+                    <div className="w-full lg:w-[320px] flex-shrink-0">
+                        <div className="bg-white dark:bg-[#111c44] rounded-3xl shadow-2xl overflow-hidden border border-slate-200/50 dark:border-white/5 backdrop-blur-sm">
+                            <div className="p-8 flex flex-col items-center border-b border-slate-100 dark:border-white/5">
+                                <div className="w-36 h-36 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-slate-700 dark:to-slate-600 p-2 shadow-2xl relative group mb-5 ring-4 ring-white dark:ring-slate-800 transition-all duration-300 group-hover:ring-blue-200 dark:group-hover:ring-blue-900/50">
                                     <div className="w-full h-full rounded-full overflow-hidden border-2 border-white dark:border-slate-600 bg-white">
                                         {user?.avatar_url ? (
                                             <img src={user.avatar_url} alt="Profile" className="w-full h-full object-cover" />
@@ -130,43 +136,46 @@ export default function ProfilePage() {
                                     />
                                 </div>
                             </div>
-                            <h2 className="text-xl font-bold text-slate-900 dark:text-white text-center">{user?.nombre || 'Usuario'}</h2>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">{user?.email}</p>
-                            <span className={cn(
-                                "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider",
-                                isAdminOrDirector ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
-                            )}>
-                                {user?.role || 'Colaborador'}
-                            </span>
+                            <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white text-center mb-2 tracking-tight">{user?.nombre || 'Usuario'}</h2>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-4 text-center">{user?.email}</p>
+                            <div className="flex justify-center w-full mb-2">
+                                <span className={cn(
+                                    "px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest shadow-sm",
+                                    isAdminOrDirector ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                )}>
+                                    {user?.role || 'Colaborador'}
+                                </span>
+                            </div>
+
                         </div>
-                        <div className="p-4">
-                            <nav className="space-y-1">
+                        <div className="p-5">
+                            <nav className="space-y-2">
                                 <button
                                     onClick={() => setActiveSection('info')}
                                     className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm",
+                                        "w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-semibold text-sm group",
                                         activeSection === 'info'
-                                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
-                                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                            ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30"
+                                            : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:translate-x-1"
                                     )}
                                 >
-                                    <User className="w-5 h-5" />
+                                    <User className={cn("w-5 h-5 transition-transform group-hover:scale-110", activeSection === 'info' ? "text-white" : "")} />
                                     Información Personal
-                                    <ChevronRight className="w-4 h-4 ml-auto opacity-50" />
+                                    <ChevronRight className={cn("w-4 h-4 ml-auto transition-transform", activeSection === 'info' ? "translate-x-1" : "opacity-40")} />
                                 </button>
                                 {isAdminOrDirector && (
                                     <button
                                         onClick={() => setActiveSection('security')}
                                         className={cn(
-                                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm",
+                                            "w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-semibold text-sm group",
                                             activeSection === 'security'
-                                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
-                                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                                ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30"
+                                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:translate-x-1"
                                         )}
                                     >
-                                        <Shield className="w-5 h-5" />
+                                        <Shield className={cn("w-5 h-5 transition-transform group-hover:scale-110", activeSection === 'security' ? "text-white" : "")} />
                                         Seguridad y Contraseña
-                                        <ChevronRight className="w-4 h-4 ml-auto opacity-50" />
+                                        <ChevronRight className={cn("w-4 h-4 ml-auto transition-transform", activeSection === 'security' ? "translate-x-1" : "opacity-40")} />
                                     </button>
                                 )}
 
@@ -174,39 +183,41 @@ export default function ProfilePage() {
                                     <button
                                         onClick={() => setActiveSection('admin')}
                                         className={cn(
-                                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-sm mt-4 border-t border-slate-100 dark:border-slate-700 pt-4",
+                                            "w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-semibold text-sm mt-4 border-t border-slate-100 dark:border-white/5 pt-5 group",
                                             activeSection === 'admin'
-                                                ? "bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400"
-                                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                                                ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30"
+                                                : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5 hover:translate-x-1"
                                         )}
                                     >
-                                        <ShieldAlert className="w-5 h-5" />
+                                        <ShieldAlert className={cn("w-5 h-5 transition-transform group-hover:scale-110", activeSection === 'admin' ? "text-white" : "")} />
                                         Administración
-                                        <ChevronRight className="w-4 h-4 ml-auto opacity-50" />
+                                        <ChevronRight className={cn("w-4 h-4 ml-auto transition-transform", activeSection === 'admin' ? "translate-x-1" : "opacity-40")} />
                                     </button>
                                 )}
                             </nav>
                         </div>
                     </div>
-                </div>
 
-                {/* Main Content */}
-                <div className="flex-1">
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-8 min-h-[500px]">
-                        {activeSection === 'info' && <PersonalInfoForm user={user} setUser={setUser} />}
-                        {activeSection === 'security' && isAdminOrDirector && <SecuritySettings />}
-                        {activeSection === 'admin' && isAdminOrDirector && <UserManagement currentUser={user} />}
+                    {/* Main Content */}
+                    <div className="flex-1">
+                        <div className="bg-white dark:bg-[#111c44] rounded-3xl shadow-2xl border border-slate-200/50 dark:border-white/5 p-8 md:p-10 min-h-[500px] backdrop-blur-sm">
+                            {activeSection === 'info' && <PersonalInfoForm user={user} setUser={setUser} />}
+                            {activeSection === 'security' && isAdminOrDirector && <SecuritySettings />}
+                            {activeSection === 'admin' && isAdminOrDirector && <UserManagement currentUser={user} />}
+                        </div>
                     </div>
                 </div>
             </div>
-            {showDeleteAvatarModal && (
-                <DeleteAvatarModal
-                    isOpen={showDeleteAvatarModal}
-                    onClose={() => setShowDeleteAvatarModal(false)}
-                    onConfirm={confirmDeleteAvatar}
-                />
-            )}
-        </div>
+            {
+                showDeleteAvatarModal && (
+                    <DeleteAvatarModal
+                        isOpen={showDeleteAvatarModal}
+                        onClose={() => setShowDeleteAvatarModal(false)}
+                        onConfirm={confirmDeleteAvatar}
+                    />
+                )
+            }
+        </div >
     );
 }
 
@@ -269,94 +280,96 @@ function PersonalInfoForm({ user, setUser }: any) {
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-8 pb-6 border-b border-slate-100 dark:border-white/5">
                 <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Información Personal</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Actualiza tus datos de contacto y perfil público.</p>
+                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Información Personal</h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Actualiza tus datos de contacto y perfil público.</p>
                 </div>
                 {!isEditing ? (
-                    <Button onClick={() => setIsEditing(true)} variant="outline" className="gap-2 rounded-xl">
+                    <Button onClick={() => setIsEditing(true)} variant="outline" className="gap-2 rounded-xl border-2 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
                         <PenLine className="w-4 h-4" /> Editar
                     </Button>
                 ) : (
-                    <div className="flex gap-2">
-                        <Button variant="ghost" onClick={() => setIsEditing(false)} className="rounded-xl" disabled={loading}>Cancelar</Button>
-                        <Button onClick={handleSave} className="gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
+                    <div className="flex gap-3">
+                        <Button variant="ghost" onClick={() => setIsEditing(false)} className="rounded-xl hover:bg-slate-100 dark:hover:bg-white/5" disabled={loading}>Cancelar</Button>
+                        <Button onClick={handleSave} className="gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg shadow-blue-500/30 transition-all" disabled={loading}>
                             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            {loading ? 'Guardando...' : 'Guardar'}
+                            {loading ? 'Guardando...' : 'Guardar Cambios'}
                         </Button>
                     </div>
                 )}
             </div>
 
             {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm mb-4">
-                    {error}
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/50 text-red-700 dark:text-red-400 p-4 rounded-xl text-sm mb-6 flex items-start gap-3">
+                    <X className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                    <span>{error}</span>
                 </div>
             )}
             {success && (
-                <div className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 p-3 rounded-lg text-sm mb-4">
-                    {success}
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800/50 text-green-700 dark:text-green-400 p-4 rounded-xl text-sm mb-6 flex items-start gap-3">
+                    <Save className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                    <span>{success}</span>
                 </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nombre Completo</label>
+                <div className="space-y-2.5">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Nombre Completo</label>
                     <div className="relative group">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-disabled:text-slate-300 w-5 h-5 transition-colors" />
+                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors" />
                         <input
                             name="nombre"
                             value={formData.nombre}
                             onChange={handleChange}
                             disabled={!isEditing}
-                            className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all disabled:bg-slate-50 dark:disabled:bg-slate-900/50 disabled:border-transparent disabled:text-slate-700 dark:disabled:text-slate-300 font-medium"
-                            placeholder="Nombre Completo"
+                            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all disabled:bg-slate-100 dark:disabled:bg-slate-800/50 disabled:border-slate-100 dark:disabled:border-slate-800 disabled:text-slate-600 dark:disabled:text-slate-400 font-medium placeholder:text-slate-400"
+                            placeholder="Ingresa tu nombre completo"
                         />
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Nombre de Usuario</label>
+                <div className="space-y-2.5">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Nombre de Usuario</label>
                     <div className="relative group">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-disabled:text-slate-300 font-bold w-5 h-5 text-center">@</span>
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold w-5 h-5 text-center flex items-center justify-center">@</span>
                         <input
                             name="username"
                             value={formData.username}
                             onChange={handleChange}
                             disabled={!isEditing}
-                            className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all disabled:bg-slate-50 dark:disabled:bg-slate-900/50 disabled:border-transparent disabled:text-slate-700 dark:disabled:text-slate-300 font-medium"
-                            placeholder="username"
+                            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all disabled:bg-slate-100 dark:disabled:bg-slate-800/50 disabled:border-slate-100 dark:disabled:border-slate-800 disabled:text-slate-600 dark:disabled:text-slate-400 font-medium placeholder:text-slate-400"
+                            placeholder="Tu nombre de usuario"
                         />
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Correo Electrónico</label>
+                <div className="space-y-2.5">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Correo Electrónico</label>
                     <div className="relative group">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-disabled:text-slate-300 w-5 h-5 transition-colors" />
+                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors" />
                         <input
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
                             disabled={!isEditing}
-                            className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all disabled:bg-slate-50 dark:disabled:bg-slate-900/50 disabled:border-transparent disabled:text-slate-700 dark:disabled:text-slate-300 font-medium"
-                            placeholder="correo@ejemplo.com"
+                            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all disabled:bg-slate-100 dark:disabled:bg-slate-800/50 disabled:border-slate-100 dark:disabled:border-slate-800 disabled:text-slate-600 dark:disabled:text-slate-400 font-medium placeholder:text-slate-400"
+                            placeholder="tu@email.com"
                         />
                     </div>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Cargo / Puesto</label>
+                <div className="space-y-2.5">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Cargo / Puesto</label>
                     <div className="relative group">
-                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-disabled:text-slate-300 w-5 h-5 transition-colors" />
+                        <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors" />
                         <input
                             name="job_title"
                             value={formData.job_title}
                             onChange={handleChange}
                             disabled={!isEditing}
-                            className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all disabled:bg-slate-50 dark:disabled:bg-slate-900/50 disabled:border-transparent disabled:text-slate-700 dark:disabled:text-slate-300 font-medium"
-                            placeholder="Cargo"
+                            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all disabled:bg-slate-100 dark:disabled:bg-slate-800/50 disabled:border-slate-100 dark:disabled:border-slate-800 disabled:text-slate-600 dark:disabled:text-slate-400 font-medium placeholder:text-slate-400"
+                            placeholder="Ej: Analista de Datos"
                         />
                     </div>
                 </div>
@@ -368,39 +381,41 @@ function PersonalInfoForm({ user, setUser }: any) {
 function SecuritySettings() {
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
-            <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Seguridad de la Cuenta</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm">Gestiona tu contraseña y PIN de acceso.</p>
+            <div className="border-b border-slate-100 dark:border-white/5 pb-6">
+                <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Seguridad de la Cuenta</h3>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Gestiona tu contraseña y PIN de acceso para proteger tu cuenta.</p>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600">
-                        <Lock className="w-6 h-6" />
+
+
+            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 transition-colors hover:border-blue-500/30 dark:hover:border-blue-500/30">
+                <div className="flex items-start gap-6 mb-8">
+                    <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm ring-4 ring-white dark:ring-slate-800">
+                        <Lock className="w-7 h-7" />
                     </div>
                     <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white text-lg">Contraseña</h4>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Se recomienda cambiar tu contraseña cada 90 días.</p>
+                        <h4 className="font-extrabold text-slate-900 dark:text-white text-xl tracking-tight">Contraseña</h4>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Se recomienda cambiar tu contraseña cada 90 días para mantener tu cuenta segura.</p>
                     </div>
                 </div>
 
-                <div className="space-y-4 max-w-lg">
+                <div className="max-w-2xl">
                     <PasswordChangeForm />
                 </div>
             </div>
 
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-                <div className="flex items-center gap-4 mb-6">
-                    <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600">
-                        <Smartphone className="w-6 h-6" />
+            <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 transition-colors hover:border-blue-500/30 dark:hover:border-blue-500/30">
+                <div className="flex items-start gap-6 mb-8">
+                    <div className="w-14 h-14 bg-blue-100 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm ring-4 ring-white dark:ring-slate-800">
+                        <Smartphone className="w-7 h-7" />
                     </div>
                     <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white text-lg">PIN de Seguridad</h4>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Código de 6 dígitos para operaciones sensibles.</p>
+                        <h4 className="font-extrabold text-slate-900 dark:text-white text-xl tracking-tight">PIN de Seguridad</h4>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Código de 6 dígitos requerido para realizar operaciones sensibles.</p>
                     </div>
                 </div>
 
-                <div className="space-y-4 max-w-lg">
+                <div className="max-w-2xl">
                     <PinChangeForm />
                 </div>
             </div>
@@ -475,49 +490,52 @@ function UserManagement({ currentUser }: { currentUser: any }) {
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100 dark:border-white/5 pb-6">
                 <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Administración de Usuarios</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm">Gestiona cuentas, contraseñas y accesos. Requiere privilegios de Admin/Director.</p>
+                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">Administración de Usuarios</h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Gestiona cuentas, contraseñas y accesos. Requiere privilegios de Admin/Director.</p>
                 </div>
                 <Button
                     onClick={() => setShowCreateModal(true)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white gap-2 rounded-xl"
+                    className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white gap-2 rounded-xl shadow-lg shadow-blue-500/30 transition-all hover:scale-105"
                 >
                     <Plus className="w-4 h-4" /> Nuevo Usuario
                 </Button>
             </div>
 
             {/* Search Bar */}
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <div className="relative group">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors group-focus-within:text-blue-500" />
                 <input
                     type="text"
                     placeholder="Buscar por nombre, correo o ID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-medium text-slate-700 dark:text-slate-200"
+                    className="w-full pl-11 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium text-slate-700 dark:text-slate-200"
                 />
             </div>
 
             {/* Users Table */}
-            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm relative min-h-[200px]">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900/50 backdrop-blur-sm min-h-[200px]">
                 {loading ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm z-10">
-                        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-10 transition-all">
+                        <div className="flex flex-col items-center gap-3">
+                            <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+                            <p className="text-sm font-bold text-blue-600 animate-pulse">Cargando usuarios...</p>
+                        </div>
                     </div>
                 ) : null}
 
                 <table className="w-full text-left text-sm">
-                    <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                    <thead className="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
                         <tr>
-                            <th className="p-4 pl-6">Usuario</th>
-                            <th className="p-4">Rol</th>
-                            <th className="p-4">Estado</th>
-                            <th className="p-4 text-right pr-6">Acciones</th>
+                            <th className="p-5 pl-8">Usuario</th>
+                            <th className="p-5">Rol</th>
+                            <th className="p-5">Estado</th>
+                            <th className="p-5 text-right pr-8">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-800">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
                         {filteredUsers.length === 0 && !loading && (
                             <tr>
                                 <td colSpan={4} className="p-8 text-center text-slate-500">
@@ -545,7 +563,7 @@ function UserManagement({ currentUser }: { currentUser: any }) {
                                 <td className="p-4">
                                     <span className={cn(
                                         "px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide border",
-                                        (user.role || user.perfil) === 'DIRECTOR' || (user.role || user.perfil) === 'admin' ? "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800" :
+                                        (user.role || user.perfil) === 'DIRECTOR' || (user.role || user.perfil) === 'admin' ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800" :
                                             (user.role || user.perfil) === 'ANALISTA' ? "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800" :
                                                 "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
                                     )}>
@@ -647,33 +665,41 @@ function EditUserDialog({ open, user, onClose }: { open: boolean, user: any, onC
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={onClose}>
             <div
-                className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-lg animate-in zoom-in-95"
+                className="bg-white dark:bg-slate-800 rounded-3xl p-8 w-full max-w-2xl animate-in zoom-in-95 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto custom-scrollbar"
                 onClick={e => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold dark:text-white">Editar Usuario</h3>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full">
-                        <X className="w-5 h-5 dark:text-white" />
+                <div className="flex items-center justify-between mb-8 border-b border-slate-100 dark:border-white/5 pb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm ring-4 ring-blue-50 dark:ring-blue-900/10">
+                            <Edit className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Editar Usuario</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Actualiza los datos del usuario.</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors group">
+                        <X className="w-5 h-5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white transition-colors" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">ID Corporativo</label>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2.5">
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">ID Corporativo</label>
                             <input
-                                className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 font-medium"
                                 value={formData.id_corporativo}
                                 onChange={e => setFormData({ ...formData, id_corporativo: e.target.value })}
                                 required
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Rol</label>
+                        <div className="space-y-2.5">
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Rol</label>
                             <select
-                                className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                                className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all font-medium appearance-none"
                                 value={formData.perfil}
                                 onChange={e => setFormData({ ...formData, perfil: e.target.value })}
                             >
@@ -683,40 +709,43 @@ function EditUserDialog({ open, user, onClose }: { open: boolean, user: any, onC
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nombre Completo</label>
+                    <div className="space-y-2.5">
+                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Nombre Completo</label>
                         <input
-                            className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                            className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 font-medium"
                             value={formData.nombre}
                             onChange={e => setFormData({ ...formData, nombre: e.target.value })}
                             required
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
-                        <input
-                            type="email"
-                            className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                            value={formData.email}
-                            onChange={e => setFormData({ ...formData, email: e.target.value })}
-                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2.5">
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Email</label>
+                            <input
+                                type="email"
+                                className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 font-medium"
+                                value={formData.email}
+                                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2.5">
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Cargo</label>
+                            <input
+                                className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 font-medium"
+                                value={formData.job_title}
+                                onChange={e => setFormData({ ...formData, job_title: e.target.value })}
+                            />
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Cargo</label>
-                        <input
-                            className="w-full p-2.5 rounded-lg border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                            value={formData.job_title}
-                            onChange={e => setFormData({ ...formData, job_title: e.target.value })}
-                        />
-                    </div>
+                    {error && <div className="text-red-500 text-sm bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-100 dark:border-red-900/50 flex items-center gap-2 font-medium">
+                        <ShieldAlert className="w-4 h-4" /> {error}
+                    </div>}
 
-                    {error && <div className="text-red-500 text-sm">{error}</div>}
-
-                    <div className="flex justify-end gap-2 pt-2">
-                        <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-                        <Button type="submit" disabled={loading} className="bg-purple-600 hover:bg-purple-700 text-white">
+                    <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-white/5">
+                        <Button type="button" variant="outline" onClick={onClose} className="rounded-xl border-2 hover:bg-slate-50 dark:hover:bg-slate-700 px-6">Cancelar</Button>
+                        <Button type="submit" disabled={loading} className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20 px-6">
                             {loading ? 'Guardando...' : 'Guardar Cambios'}
                         </Button>
                     </div>
@@ -724,6 +753,7 @@ function EditUserDialog({ open, user, onClose }: { open: boolean, user: any, onC
             </div>
         </div>
     );
+
 }
 
 function ResetPasswordDialog({ open, user, onClose }: { open: boolean, user: any, onClose: () => void }) {
@@ -757,36 +787,51 @@ function ResetPasswordDialog({ open, user, onClose }: { open: boolean, user: any
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={onClose}>
             <div
-                className="bg-white dark:bg-slate-800 rounded-2xl p-6 w-full max-w-md animate-in zoom-in-95"
+                className="bg-white dark:bg-slate-800 rounded-3xl p-8 w-full max-w-md animate-in zoom-in-95 shadow-2xl border border-slate-200 dark:border-slate-700"
                 onClick={e => e.stopPropagation()}
             >
-                <h3 className="text-xl font-bold mb-4 dark:text-white">Restablecer Contraseña</h3>
-                <p className="mb-4 text-slate-600 dark:text-slate-400 text-sm">Usuario: <strong>{user.nombre}</strong></p>
-
-                <div className="space-y-3 mb-6">
-                    <input
-                        type="password"
-                        placeholder="Nueva contraseña"
-                        className="w-full p-3 rounded-xl border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                        value={newPassword}
-                        onChange={e => setNewPassword(e.target.value)}
-                    />
-                    <input
-                        type="password"
-                        placeholder="Confirmar nueva contraseña"
-                        className="w-full p-3 rounded-xl border dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                        value={confirmPassword}
-                        onChange={e => setConfirmPassword(e.target.value)}
-                    />
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-sm ring-4 ring-blue-50 dark:ring-blue-900/10">
+                        <Key className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-extrabold dark:text-white tracking-tight">Restablecer Clave</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">Usuario: <span className="font-bold text-slate-700 dark:text-slate-300">{user.nombre}</span></p>
+                    </div>
                 </div>
 
-                {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+                <div className="space-y-4 mb-8">
+                    <div className="space-y-2.5">
+                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Nueva Contraseña</label>
+                        <input
+                            type="password"
+                            placeholder="Nueva contraseña"
+                            className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 outline-none transition-all placeholder:text-slate-400 font-medium"
+                            value={newPassword}
+                            onChange={e => setNewPassword(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2.5">
+                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Confirmar Contraseña</label>
+                        <input
+                            type="password"
+                            placeholder="Confirmar nueva contraseña"
+                            className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 outline-none transition-all placeholder:text-slate-400 font-medium"
+                            value={confirmPassword}
+                            onChange={e => setConfirmPassword(e.target.value)}
+                        />
+                    </div>
+                </div>
 
-                <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={onClose}>Cancelar</Button>
-                    <Button onClick={handleReset} disabled={loading} className="bg-purple-600 hover:bg-purple-700 text-white">
+                {error && <div className="text-red-500 text-sm mb-6 bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-100 dark:border-red-900/50 flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4" /> {error}
+                </div>}
+
+                <div className="flex justify-end gap-3">
+                    <Button variant="outline" onClick={onClose} className="rounded-xl border-2 hover:bg-slate-50 dark:hover:bg-slate-700">Cancelar</Button>
+                    <Button onClick={handleReset} disabled={loading} className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl shadow-lg shadow-amber-500/20">
                         {loading ? 'Guardando...' : 'Guardar Nueva Contraseña'}
                     </Button>
                 </div>
@@ -825,40 +870,64 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200" onClick={onClose}>
             <div
-                className="bg-white dark:bg-slate-800 rounded-2xl p-8 w-full max-w-lg animate-in zoom-in-95 shadow-2xl border border-slate-200 dark:border-slate-700"
+                className="bg-white dark:bg-slate-800 rounded-3xl p-8 w-full max-w-2xl animate-in zoom-in-95 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto custom-scrollbar"
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Nuevo Usuario</h3>
+                <div className="flex items-center justify-between mb-8 border-b border-slate-100 dark:border-white/5 pb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center text-purple-600 dark:text-purple-400 shadow-sm ring-4 ring-purple-50 dark:ring-purple-900/10">
+                            <Plus className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Nuevo Usuario</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">Crea una nueva cuenta de acceso al sistema.</p>
+                        </div>
+                    </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
+                        className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors group"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-white transition-colors" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            ID Corporativo *
-                        </label>
-                        <input
-                            type="text"
-                            required
-                            minLength={3}
-                            maxLength={50}
-                            value={formData.id_corporativo}
-                            onChange={(e) => setFormData({ ...formData, id_corporativo: e.target.value })}
-                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
-                            placeholder="admin, diana, etc."
-                        />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2.5">
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">
+                                ID Corporativo *
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                minLength={3}
+                                maxLength={50}
+                                value={formData.id_corporativo}
+                                onChange={(e) => setFormData({ ...formData, id_corporativo: e.target.value })}
+                                className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all placeholder:text-slate-400 font-medium"
+                                placeholder="admin, diana, etc."
+                            />
+                        </div>
+                        <div className="space-y-2.5">
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">
+                                Rol / Perfil *
+                            </label>
+                            <select
+                                required
+                                value={formData.perfil}
+                                onChange={(e) => setFormData({ ...formData, perfil: e.target.value })}
+                                className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium appearance-none"
+                            >
+                                <option value="COLABORADOR">Colaborador</option>
+                                <option value="DIRECTOR">Director</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    <div className="space-y-2.5">
+                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">
                             Nombre completo *
                         </label>
                         <input
@@ -866,26 +935,40 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
                             required
                             value={formData.nombre}
                             onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all placeholder:text-slate-400 font-medium"
                             placeholder="Juan Pérez"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            Correo electrónico
-                        </label>
-                        <input
-                            type="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
-                            placeholder="usuario@mqs.com"
-                        />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-2.5">
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">
+                                Correo electrónico
+                            </label>
+                            <input
+                                type="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all placeholder:text-slate-400 font-medium"
+                                placeholder="usuario@mqs.com"
+                            />
+                        </div>
+                        <div className="space-y-2.5">
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">
+                                Cargo
+                            </label>
+                            <input
+                                type="text"
+                                value={formData.job_title}
+                                onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
+                                className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all placeholder:text-slate-400 font-medium"
+                                placeholder="Analista, Director, etc."
+                            />
+                        </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                    <div className="space-y-2.5">
+                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">
                             Contraseña *
                         </label>
                         <input
@@ -894,59 +977,31 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
                             minLength={3}
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            className="w-full px-4 py-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all placeholder:text-slate-400 font-medium"
                             placeholder="Contraseña temporal"
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            Cargo
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.job_title}
-                            onChange={(e) => setFormData({ ...formData, job_title: e.target.value })}
-                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
-                            placeholder="Analista, Director, etc."
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            Rol / Perfil *
-                        </label>
-                        <select
-                            required
-                            value={formData.perfil}
-                            onChange={(e) => setFormData({ ...formData, perfil: e.target.value })}
-                            className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
-                        >
-                            <option value="COLABORADOR">Colaborador</option>
-                            <option value="DIRECTOR">Director</option>
-                        </select>
-                    </div>
-
                     {error && (
-                        <div className="bg-red-500/20 border border-red-500/30 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-red-500 shrink-0"></div>
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/50 text-red-700 dark:text-red-400 px-4 py-4 rounded-xl text-sm flex items-center gap-3 font-medium">
+                            <ShieldAlert className="w-5 h-5 shrink-0" />
                             {error}
                         </div>
                     )}
 
-                    <div className="flex justify-end gap-3 pt-4">
+                    <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-white/5">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={onClose}
-                            className="rounded-xl"
+                            className="rounded-xl border-2 hover:bg-slate-50 dark:hover:bg-slate-700 px-6"
                         >
                             Cancelar
                         </Button>
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl gap-2"
+                            className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 text-white rounded-xl shadow-lg shadow-purple-500/20 px-6 gap-2"
                         >
                             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                             {loading ? 'Creando...' : 'Crear Usuario'}
@@ -956,6 +1011,7 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
             </div>
         </div>
     );
+
 }
 
 function PasswordChangeForm() {
@@ -988,49 +1044,49 @@ function PasswordChangeForm() {
     return (
         <div className="space-y-6">
             {message.text && (
-                <div className={`p-4 rounded-xl text-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${message.type === 'error' ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 border border-red-100 dark:border-red-900' : 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 border border-green-100 dark:border-green-900'}`}>
-                    {message.type === 'error' ? <ShieldAlert className="w-5 h-5 shrink-0" /> : <Shield className="w-5 h-5 shrink-0" />}
+                <div className={`p-4 rounded-xl text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2 border ${message.type === 'error' ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-100 dark:border-red-900/50' : 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 border-green-100 dark:border-green-900/50'}`}>
+                    {message.type === 'error' ? <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" /> : <Shield className="w-5 h-5 shrink-0 mt-0.5" />}
                     <span className="font-medium">{message.text}</span>
                 </div>
             )}
 
-            <div className="space-y-4">
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Contraseña Actual</label>
-                    <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <div className="space-y-5">
+                <div className="space-y-2.5">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Contraseña Actual</label>
+                    <div className="relative group">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors" />
                         <input
                             type="password"
                             placeholder="Ingresa tu contraseña actual"
-                            className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition-all placeholder:text-slate-400"
+                            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 font-medium"
                             value={passData.current_password}
                             onChange={(e) => setPassData({ ...passData, current_password: e.target.value })}
                         />
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Nueva Contraseña</label>
-                        <div className="relative">
-                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2.5">
+                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Nueva Contraseña</label>
+                        <div className="relative group">
+                            <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors" />
                             <input
                                 type="password"
                                 placeholder="Nueva contraseña"
-                                className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition-all placeholder:text-slate-400"
+                                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 font-medium"
                                 value={passData.new_password}
                                 onChange={(e) => setPassData({ ...passData, new_password: e.target.value })}
                             />
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirmar Contraseña</label>
-                        <div className="relative">
-                            <Key className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <div className="space-y-2.5">
+                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Confirmar Contraseña</label>
+                        <div className="relative group">
+                            <Key className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors" />
                             <input
                                 type="password"
                                 placeholder="Repite la nueva contraseña"
-                                className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-blue-500/10 focus:border-blue-600 outline-none transition-all placeholder:text-slate-400"
+                                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-slate-400 font-medium"
                                 value={passData.confirm_password}
                                 onChange={(e) => setPassData({ ...passData, confirm_password: e.target.value })}
                             />
@@ -1042,7 +1098,7 @@ function PasswordChangeForm() {
             <Button
                 onClick={handlePasswordChange}
                 disabled={loading}
-                className="w-full md:w-auto bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-medium px-8 shadow-lg shadow-blue-600/20"
+                className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl font-bold px-8 py-6 shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
                 {loading ? <div className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Actualizando...</div> : 'Actualizar Contraseña'}
             </Button>
@@ -1085,21 +1141,21 @@ function PinChangeForm() {
     return (
         <div className="space-y-6">
             {message.text && (
-                <div className={`p-4 rounded-xl text-sm flex items-center gap-3 animate-in fade-in slide-in-from-top-2 ${message.type === 'error' ? 'bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 border border-red-100 dark:border-red-900' : 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 border border-green-100 dark:border-green-900'}`}>
-                    {message.type === 'error' ? <ShieldAlert className="w-5 h-5 shrink-0" /> : <Shield className="w-5 h-5 shrink-0" />}
+                <div className={`p-4 rounded-xl text-sm flex items-start gap-3 animate-in fade-in slide-in-from-top-2 border ${message.type === 'error' ? 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-100 dark:border-red-900/50' : 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400 border-green-100 dark:border-green-900/50'}`}>
+                    {message.type === 'error' ? <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" /> : <Shield className="w-5 h-5 shrink-0 mt-0.5" />}
                     <span className="font-medium">{message.text}</span>
                 </div>
             )}
 
-            <div className="space-y-4">
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">PIN Actual</label>
-                    <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <div className="space-y-5">
+                <div className="space-y-2.5">
+                    <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">PIN Actual</label>
+                    <div className="relative group">
+                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors" />
                         <input
                             type="password"
                             placeholder="• • • • • •"
-                            className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-purple-500/10 focus:border-purple-600 outline-none transition-all placeholder:text-slate-400 tracking-[0.5em] text-center font-mono"
+                            className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 outline-none transition-all placeholder:text-slate-400 tracking-[0.5em] text-center font-mono text-lg"
                             maxLength={6}
                             value={pinData.current_pin}
                             onChange={(e) => setPinData({ ...pinData, current_pin: e.target.value })}
@@ -1107,29 +1163,29 @@ function PinChangeForm() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Nuevo PIN</label>
-                        <div className="relative">
-                            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2.5">
+                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Nuevo PIN</label>
+                        <div className="relative group">
+                            <Shield className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors" />
                             <input
                                 type="password"
                                 placeholder="• • • • • •"
-                                className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-purple-500/10 focus:border-purple-600 outline-none transition-all placeholder:text-slate-400 tracking-[0.5em] text-center font-mono"
+                                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 outline-none transition-all placeholder:text-slate-400 tracking-[0.5em] text-center font-mono text-lg"
                                 maxLength={6}
                                 value={pinData.new_pin}
                                 onChange={(e) => setPinData({ ...pinData, new_pin: e.target.value })}
                             />
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirmar PIN</label>
-                        <div className="relative">
-                            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                    <div className="space-y-2.5">
+                        <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1">Confirmar PIN</label>
+                        <div className="relative group">
+                            <Shield className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 transition-colors" />
                             <input
                                 type="password"
                                 placeholder="• • • • • •"
-                                className="w-full pl-10 p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-4 focus:ring-purple-500/10 focus:border-purple-600 outline-none transition-all placeholder:text-slate-400 tracking-[0.5em] text-center font-mono"
+                                className="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 outline-none transition-all placeholder:text-slate-400 tracking-[0.5em] text-center font-mono text-lg"
                                 maxLength={6}
                                 value={pinData.confirm_pin}
                                 onChange={(e) => setPinData({ ...pinData, confirm_pin: e.target.value })}
@@ -1142,7 +1198,7 @@ function PinChangeForm() {
             <Button
                 onClick={handlePinChange}
                 disabled={loading}
-                className="w-full md:w-auto bg-purple-600 text-white rounded-xl hover:bg-purple-700 font-medium px-8 shadow-lg shadow-purple-600/20"
+                className="w-full md:w-auto bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white rounded-xl font-bold px-8 py-6 shadow-lg shadow-blue-500/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
                 {loading ? <div className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Actualizando...</div> : 'Actualizar PIN'}
             </Button>

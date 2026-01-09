@@ -3,7 +3,7 @@ FastAPI main application for MQS Garantías - SEACE monitoring system.
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth, mqs, admin, scraping, tendencias, etl, formatos, users, support, test, notifications, test_serialization, reportes, chatbot, exports
+from app.routers import auth, mqs, admin, scraping, tendencias, etl, formatos, users, support, test, notifications, reportes, chatbot, exports
 from app.routers import dashboard_raw as dashboard
 from app.routers import licitaciones_raw as licitaciones
 from app.services.notification_scheduler import start_scheduler, stop_scheduler
@@ -23,6 +23,7 @@ app.add_middleware(
         "https://mcqs-jcq.cloud",
         "https://mcqs-jcq.com",
         "https://www.mcqs-jcq.com",
+        "https://api.mcqs-jcq.com",
         "http://localhost:3000"
     ],
     allow_credentials=True,
@@ -33,7 +34,6 @@ app.add_middleware(
 
 # Include routers - New system
 app.include_router(test.router)  # Test router first
-app.include_router(test_serialization.router)  # Debug test
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(mqs.router)
