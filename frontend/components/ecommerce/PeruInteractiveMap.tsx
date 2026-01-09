@@ -167,7 +167,17 @@ export const PeruInteractiveMap: React.FC<PeruMapProps> = ({ data = [], province
                     className="w-full h-full max-w-[400px] max-h-[600px]"
                     style={{ width: "100%", height: "100%" }}
                 >
-                    <ZoomableGroup center={[-75, -9.5]} zoom={1}>
+                    <ZoomableGroup
+                        center={[-75, -9.5]}
+                        zoom={1}
+                        minZoom={1}
+                        maxZoom={1}
+                        filterZoomEvent={(evt) => {
+                            // Disable wheel/scroll zoom completely
+                            if (evt.type === 'wheel') return false;
+                            return true;
+                        }}
+                    >
                         <Geographies geography="/peru-departments.geojson">
                             {({ geographies }: { geographies: any[] }) =>
                                 geographies.map((geo) => {

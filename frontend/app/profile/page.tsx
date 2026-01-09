@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { User, Mail, Briefcase, Camera, Key, Lock, Shield, Smartphone, PenLine, ChevronRight, Save, X, MoreVertical, Trash2, Edit, ShieldAlert, Plus, Search, Loader2 } from 'lucide-react';
+import { User, Mail, Briefcase, Camera, Key, Lock, Shield, Smartphone, PenLine, ChevronRight, Save, X, MoreVertical, Trash2, Edit, ShieldAlert, Plus, Search, Loader2, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
 import { HeaderActions } from '@/components/layout/header-actions';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -12,7 +14,9 @@ import { api } from '@/lib/api';
 import { useAuthProtection } from '@/hooks/use-auth-protection';
 
 export default function ProfilePage() {
+    const router = useRouter();
     const { isAuthenticated, loading: authLoading } = useAuthProtection();
+
     const [user, setUser] = useState<any>(null);
     const [activeSection, setActiveSection] = useState<'info' | 'security' | 'admin'>('info');
     const [loading, setLoading] = useState(true);
@@ -85,7 +89,15 @@ export default function ProfilePage() {
                 <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(96, 165, 250, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%)' }}></div>
                 <div className="container mx-auto px-6 h-full flex items-center justify-between relative z-30">
                     <div className="mt-[-1rem]">
+                        <button
+                            onClick={() => router.back()}
+                            className="flex items-center gap-2 text-white/80 hover:text-white mb-4 transition-colors font-medium text-sm group"
+                        >
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            Volver
+                        </button>
                         <h1 className="text-4xl font-extrabold text-white mb-3 tracking-tight drop-shadow-lg">Mi Perfil</h1>
+
                         <p className="text-blue-100 font-medium text-lg">Gestiona tu información personal y seguridad de la cuenta.</p>
                     </div>
                     <div className="hidden md:block">

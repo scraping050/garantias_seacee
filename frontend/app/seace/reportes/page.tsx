@@ -663,26 +663,32 @@ export default function GeneradorReportesPage() {
 
                             {/* Pagination */}
                             {totalPages > 1 && (
-                                <div className="flex justify-center pt-8">
-                                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                <div className="flex justify-center pt-8 pb-4">
+                                    <nav className="flex items-center gap-6" aria-label="Pagination">
                                         <button
                                             onClick={() => fetchResultados(Math.max(1, currentPage - 1))}
                                             disabled={currentPage === 1}
-                                            className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-slate-700 dark:hover:bg-[#111c44]"
+                                            className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none"
                                         >
-                                            <span className="sr-only">Previous</span>
-                                            <ChevronDown className="h-5 w-5 rotate-90" />
+                                            <div className="p-2 rounded-full group-hover:bg-slate-100 dark:group-hover:bg-white/5 transition-colors">
+                                                <ChevronDown className="h-4 w-4 rotate-90" />
+                                            </div>
+                                            <span className="hidden sm:inline">Anterior</span>
                                         </button>
-                                        <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-300 focus:outline-offset-0 dark:text-white dark:ring-slate-700">
-                                            Página {currentPage} de {totalPages}
-                                        </span>
+
+                                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                            Página <span className="text-slate-900 dark:text-white font-bold mx-1">{currentPage}</span> de <span className="mx-1">{totalPages}</span>
+                                        </div>
+
                                         <button
                                             onClick={() => fetchResultados(Math.min(totalPages, currentPage + 1))}
                                             disabled={currentPage === totalPages}
-                                            className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 dark:ring-slate-700 dark:hover:bg-[#111c44]"
+                                            className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none"
                                         >
-                                            <span className="sr-only">Next</span>
-                                            <ChevronDown className="h-5 w-5 -rotate-90" />
+                                            <span className="hidden sm:inline">Siguiente</span>
+                                            <div className="p-2 rounded-full group-hover:bg-slate-100 dark:group-hover:bg-white/5 transition-colors">
+                                                <ChevronDown className="h-4 w-4 -rotate-90" />
+                                            </div>
                                         </button>
                                     </nav>
                                 </div>

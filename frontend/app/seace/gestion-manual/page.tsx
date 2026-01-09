@@ -65,6 +65,8 @@ export default function GestionManualPage() {
     const [licitaciones, setLicitaciones] = useState<Licitacion[]>([]);
     const [loading, setLoading] = useState(false);
     const [totalItems, setTotalItems] = useState(0);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(0);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -98,9 +100,12 @@ export default function GestionManualPage() {
             if (aseguradora !== 'Todas las aseguradoras') filters.entidad_financiera = aseguradora;
             if (entidad !== 'Todas las entidades') filters.comprador = entidad;
 
-            const response = await licitacionService.getAll(1, 20, filters);
+            if (entidad !== 'Todas las entidades') filters.comprador = entidad;
+
+            const response = await licitacionService.getAll(currentPage, 20, filters);
             setLicitaciones(response.items);
             setTotalItems(response.total);
+            setTotalPages(response.total_pages);
         } catch (error) {
             console.error("Error fetching licitaciones:", error);
         } finally {
@@ -148,6 +153,7 @@ export default function GestionManualPage() {
     }, [provincia, departamento]);
 
     const fetchFilters = async () => {
+
         try {
             const data = await licitacionService.getFilters();
             setFilterOptions(data);
@@ -159,7 +165,7 @@ export default function GestionManualPage() {
     useEffect(() => {
         fetchFilters();
         fetchLicitaciones();
-    }, [searchTerm, estado, departamento, provincia, distrito, categoria, origenFilter, anio, mes, tipoGarantia, aseguradora, entidad]);
+    }, [searchTerm, estado, departamento, provincia, distrito, categoria, origenFilter, anio, mes, tipoGarantia, aseguradora, entidad, currentPage]);
 
     // Handlers
     const handleCreate = () => {
@@ -229,6 +235,7 @@ export default function GestionManualPage() {
         setAseguradora("Todas las aseguradoras");
         setEntidad("Todas las entidades");
         setOrigenFilter("Todos");
+        setCurrentPage(1);
     };
 
     return (
@@ -528,6 +535,41 @@ export default function GestionManualPage() {
                     ))}
                 </div>
 
+
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="flex justify-center pt-10 pb-6">
+                        <nav className="flex items-center gap-6" aria-label="Pagination">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                            >
+                                <div className="p-2 rounded-full group-hover:bg-slate-100 dark:group-hover:bg-white/5 transition-colors">
+                                    <ChevronUp className="h-4 w-4 -rotate-90" />
+                                </div>
+                                <span className="hidden sm:inline">Anterior</span>
+                            </button>
+
+                            <div className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                Página <span className="text-slate-900 dark:text-white font-bold mx-1">{currentPage}</span> de <span className="mx-1">{totalPages}</span>
+                            </div>
+
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none"
+                            >
+                                <span className="hidden sm:inline">Siguiente</span>
+                                <div className="p-2 rounded-full group-hover:bg-slate-100 dark:group-hover:bg-white/5 transition-colors">
+                                    <ChevronDown className="h-4 w-4 -rotate-90" />
+                                </div>
+                            </button>
+                        </nav>
+                    </div>
+                )}
+
                 <LicitacionModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
@@ -546,6 +588,6 @@ export default function GestionManualPage() {
                 />
 
             </div>
-        </div>
+        </div >
     );
 }
