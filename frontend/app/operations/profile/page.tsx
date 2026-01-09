@@ -4,18 +4,21 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Crown, Users } from 'lucide-react'
 
+import { useAuthProtection } from '@/hooks/use-auth-protection'
+
 export default function ProfileSelectionPage() {
+    const { isAuthenticated, loading } = useAuthProtection()
     const router = useRouter()
     const [user, setUser] = useState<any>(null)
 
     useEffect(() => {
-        const userData = localStorage.getItem('user')
-        if (!userData) {
-            router.push('/login')
-            return
+        if (isAuthenticated) {
+            const userData = localStorage.getItem('user')
+            if (userData) {
+                setUser(JSON.parse(userData))
+            }
         }
-        setUser(JSON.parse(userData))
-    }, [router])
+    }, [isAuthenticated])
 
     const handleProfileClick = (profile: string) => {
         // Store selected profile

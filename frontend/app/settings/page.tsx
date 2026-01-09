@@ -7,15 +7,20 @@ import { Save, Bell, Moon, Sun, Monitor, Type, ShieldCheck, Globe } from 'lucide
 import { api } from '@/lib/api';
 import { useSettings } from '@/contexts/settings-context';
 
+import { useAuthProtection } from '@/hooks/use-auth-protection';
+
 export default function SettingsPage() {
+    const { isAuthenticated, loading: authLoading } = useAuthProtection();
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [successMessage, setSuccessMessage] = useState('');
 
     useEffect(() => {
-        fetchUserData();
-    }, []);
+        if (isAuthenticated) fetchUserData();
+    }, [isAuthenticated]);
+
+    if (authLoading || !isAuthenticated) return null;
 
     const fetchUserData = async () => {
         try {

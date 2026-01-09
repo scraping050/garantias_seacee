@@ -10,7 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # JWT Configuration
 SECRET_KEY = "your-secret-key-here-change-in-production"  # Change this in production!
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 43200  # 30 days (30 * 24 * 60 = 43200 minutes)
 
 # Admin PIN (in production, store this securely)
 ADMIN_PIN = "123456"

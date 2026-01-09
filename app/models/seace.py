@@ -2,6 +2,7 @@
 SEACE database models (imported from existing models.py).
 """
 from sqlalchemy import Column, Integer, String, Numeric, Date, Text, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from app.database import Base
 
 
@@ -28,6 +29,9 @@ class LicitacionesCabecera(Base):
     archivo_origen = Column(String(100))
     fecha_carga = Column(DateTime)
     last_update = Column(DateTime)
+    
+    # Relationship to adjudicaciones
+    adjudicaciones = relationship("LicitacionesAdjudicaciones", back_populates="licitacion")
 
 
 class LicitacionesAdjudicaciones(Base):
@@ -47,6 +51,9 @@ class LicitacionesAdjudicaciones(Base):
     entidad_financiera = Column(String(255), index=True)  # Banco garantía
     fecha_registro = Column(DateTime)
     tipo_garantia = Column(String(50))
+    
+    # Relationship back to licitacion
+    licitacion = relationship("LicitacionesCabecera", back_populates="adjudicaciones")
 
 
 class DetalleConsorcios(Base):

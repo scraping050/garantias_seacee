@@ -6,7 +6,13 @@ import Link from 'next/link';
 import { HeaderActions } from '@/components/layout/header-actions';
 import ChatbotWidget from '@/components/chatbot/ChatbotWidget';
 
+import { useAuthProtection } from '@/hooks/use-auth-protection';
+
 export default function MQSLayout({ children }: { children: React.ReactNode }) {
+    const { isAuthenticated, loading } = useAuthProtection();
+
+    if (loading || !isAuthenticated) return null;
+
     const router = useRouter();
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);

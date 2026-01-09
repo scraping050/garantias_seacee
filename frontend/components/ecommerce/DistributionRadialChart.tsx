@@ -9,9 +9,15 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
 interface DistributionRadialChartProps {
     data: Array<{ type: string, total: number }>;
+    selectedYear?: number;
+    onYearChange?: (year: number) => void;
 }
 
-export const DistributionRadialChart: React.FC<DistributionRadialChartProps> = ({ data = [] }) => {
+export const DistributionRadialChart: React.FC<DistributionRadialChartProps> = ({
+    data = [],
+    selectedYear = 2024,
+    onYearChange = () => { }
+}) => {
     const totalAmount = data.reduce((sum, item) => sum + item.total, 0);
 
     const categories = [
@@ -87,12 +93,30 @@ export const DistributionRadialChart: React.FC<DistributionRadialChartProps> = (
         labels: stats.map(s => s.label)
     };
 
+    const years = [2024, 2025, 2026];
+
     return (
         <div className="rounded-2xl bg-white dark:bg-[#111c44] p-6 shadow-sm border border-slate-100 dark:border-white/5 h-full flex flex-col justify-between">
             {/* Header */}
-            <div className="mb-4">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Distribución por Tipo</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Licitaciones por categoría</p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                <div>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Distribución por Tipo</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Licitaciones por categoría</p>
+                </div>
+                <div className="flex bg-slate-50 dark:bg-slate-800 rounded-lg p-1 shrink-0">
+                    {years.map(year => (
+                        <button
+                            key={year}
+                            onClick={() => onYearChange(year)}
+                            className={`min-w-[50px] px-3 py-1 text-xs font-bold rounded-md transition-all ${selectedYear === year
+                                ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5 dark:bg-[#111c44] dark:text-white dark:ring-white/10'
+                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                }`}
+                        >
+                            {year}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Chart */}

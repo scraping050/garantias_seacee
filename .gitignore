@@ -1,20 +1,47 @@
-**/node_modules
-**/.next
-**/venv
-**/venv_new
-**/__pycache__
-**/.env
-**/.DS_Store
-**/dist
-**/build
-**/*.log
-1_motor_etl/venv
-input_data
-output_data
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+*.log
+
+# Node
+node_modules/
+.next/
+dist/
+coverage/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
 deploy_package.zip
+*.zip
+*.tar.gz
+*.rar
+
+# Data - EXCLUDE LARGE FILES
+1_database/*.json
+1_database/*.csv
+data/
+*.db
+*.sqlite
+
+# Debug scripts
 test_*.py
 verify_*.py
 debug_*.py
-check_*.py
 probe_*.py
-audit_*.py
+list_*.py
+inspect_*.py
+check_*.py
+diagnose_*.py
+fix_*.py
+rebuild_*.py
+force_*.py
+get_crash_*.py

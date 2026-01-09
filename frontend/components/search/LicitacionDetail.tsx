@@ -54,6 +54,19 @@ export default function LicitacionDetail({ id, basePath = "/seace/busqueda" }: P
 
     const formatDate = (dateString?: string) => {
         if (!dateString) return "N/A";
+        // Fix: Use simple string split to avoid timezone conversion issues
+        if (dateString.includes('T')) {
+            const dateOnly = dateString.split('T')[0];
+            const [year, month, day] = dateOnly.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        // Assume YYYY-MM-DD
+        const [year, month, day] = dateString.split('-');
+        if (year && month && day) {
+            return `${day}/${month}/${year}`;
+        }
+
         return new Date(dateString).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric" });
     };
 
@@ -112,8 +125,8 @@ export default function LicitacionDetail({ id, basePath = "/seace/busqueda" }: P
 
                             <div className="mt-4 flex flex-wrap gap-2 mb-4">
                                 <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase border ${licitacion.estado_proceso === "CONVOCA" ? "bg-yellow-100 text-yellow-700 border-yellow-200" :
-                                        licitacion.estado_proceso?.includes("CONTRATADO") || licitacion.estado_proceso?.includes("ADJUDICADO") ? "bg-slate-100 text-slate-700 border-slate-200" :
-                                            "bg-slate-50 text-slate-600 border-slate-200"
+                                    licitacion.estado_proceso?.includes("CONTRATADO") || licitacion.estado_proceso?.includes("ADJUDICADO") ? "bg-slate-100 text-slate-700 border-slate-200" :
+                                        "bg-slate-50 text-slate-600 border-slate-200"
                                     }`}>
                                     {licitacion.estado_proceso || "PENDIENTE"}
                                 </span>

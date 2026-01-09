@@ -5,8 +5,15 @@ import { useRouter } from 'next/navigation';
 import { useNotifications, Notification } from '@/hooks/use-notifications';
 import { useNotificationWebSocket } from '@/hooks/use-notification-websocket';
 
-export default function NotificationDropdown() {
-    const [isOpen, setIsOpen] = useState(false);
+
+interface NotificationDropdownProps {
+    isOpen: boolean;
+    onToggle: () => void;
+    onClose: () => void;
+}
+
+export default function NotificationDropdown({ isOpen, onToggle, onClose }: NotificationDropdownProps) {
+    // const [isOpen, setIsOpen] = useState(false); // Managed by parent
     const dropdownRef = useRef<HTMLDivElement>(null);
     const router = useRouter();
 
@@ -27,18 +34,18 @@ export default function NotificationDropdown() {
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
+                if (isOpen) onClose();
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [isOpen, onClose]);
 
     const handleNotificationClick = async (notification: Notification) => {
         try {
             if (!notification.is_read) await markAsRead(notification.id);
             if (notification.link) {
-                setIsOpen(false);
+                onClose();
                 router.push(notification.link);
             }
         } catch (error) {
@@ -63,8 +70,11 @@ export default function NotificationDropdown() {
     return (
         <div className="relative" ref={dropdownRef}>
             <button
-                onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-slate-700 rounded-full transition-all active:scale-95"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onToggle();
+                }}
+                className="relative p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-slate-700 rounded-full transition-all"
             >
                 <i className={`fas fa-bell text-xl ${isOpen ? 'text-slate-800 dark:text-white' : ''}`}></i>
                 {unreadCount > 0 && (
@@ -75,7 +85,7 @@ export default function NotificationDropdown() {
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-3 w-[360px] bg-white dark:bg-slate-800 rounded-lg shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-slate-700 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="absolute right-0 mt-3 w-[360px] bg-white dark:bg-slate-800 rounded-lg shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 dark:border-slate-700 z-50 overflow-hidden">
 
                     {/* Header Clean */}
                     <div className="px-5 py-4 border-b border-gray-100 dark:border-slate-700 flex items-center justify-between">
@@ -88,7 +98,7 @@ export default function NotificationDropdown() {
                     </div>
 
                     {/* Content */}
-                    <div className="max-h-[400px] overflow-y-auto">
+                    <div className="max-h-[400px] overflow-y-auto overflow-x-hidden custom-scrollbar">
                         {loading && notifications.length === 0 ? (
                             <div className="p-8 text-center text-gray-400">
                                 <p className="text-xs">Cargando...</p>
@@ -104,17 +114,22 @@ export default function NotificationDropdown() {
                         ) : (
                             <div className="divide-y divide-gray-50 dark:divide-slate-700">
                                 {notifications.map((n) => {
-                                    // Parse State Change
-                                    const isStateChange = n.message.includes("->");
+                                    // Robust Parsing for State Change
+                                    const arrowMatch = n.message.match(/(\s->\s|\s→\s|\s=>\s)/);
+                                    const isStateChange = !!arrowMatch;
                                     let oldState = "", newState = "";
-                                    if (isStateChange) {
-                                        const cleanMsg = n.message.replace("Estado cambiado:", "").replace("Cambio de Estado:", "");
-                                        const parts = cleanMsg.split("->");
-                                        if (parts.length === 2) {
+
+                                    if (isStateChange && arrowMatch) {
+                                        const cleanMsg = n.message.replace(/^(Estado cambiado:|Cambio de Estado:)/i, "").trim();
+                                        const parts = cleanMsg.split(arrowMatch[0]);
+                                        if (parts.length >= 2) {
                                             oldState = parts[0].trim();
                                             newState = parts[1].trim();
                                         }
                                     }
+
+                                    // Clean Title
+                                    const displayTitle = n.title.replace(/^(Cambio de Estado:|Estado cambiado:)/i, "").trim();
 
                                     return (
                                         <div key={n.id} className="group relative p-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors cursor-default">
@@ -127,7 +142,7 @@ export default function NotificationDropdown() {
                                                 {/* Header Row */}
                                                 <div className="flex justify-between items-start mb-1">
                                                     <h4 className="text-sm font-bold text-gray-900 dark:text-white line-clamp-1 pr-4" title={n.title}>
-                                                        {n.title.replace("Cambio de Estado:", "").trim()}
+                                                        {displayTitle || n.title}
                                                     </h4>
                                                     {!n.is_read && (
                                                         <button
@@ -142,10 +157,10 @@ export default function NotificationDropdown() {
                                                 {/* Body / State Visual */}
                                                 <div className="mb-2">
                                                     {isStateChange && oldState && newState ? (
-                                                        <div className="flex items-center gap-2 text-xs font-medium mt-1 bg-gray-50 dark:bg-slate-800/50 p-1.5 rounded-md w-fit">
-                                                            <span className="text-gray-500">{oldState}</span>
-                                                            <i className="fas fa-arrow-right text-[10px] text-gray-300"></i>
-                                                            <span className={newState === 'NULO' || newState === 'DESIERTO' ? 'text-red-600' : 'text-emerald-600'}>
+                                                        <div className="flex flex-wrap items-center gap-2 text-xs font-medium mt-1 bg-gray-50 dark:bg-slate-800/50 p-1.5 rounded-md max-w-full">
+                                                            <span className="text-gray-500 break-words">{oldState}</span>
+                                                            <i className="fas fa-arrow-right text-[10px] text-gray-300 shrink-0"></i>
+                                                            <span className={`${newState === 'NULO' || newState === 'DESIERTO' ? 'text-red-600' : 'text-emerald-600'} break-words`}>
                                                                 {newState}
                                                             </span>
                                                         </div>
@@ -181,7 +196,7 @@ export default function NotificationDropdown() {
                     {/* Footer Clean */}
                     <div className="p-3 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
                         <button
-                            onClick={() => { setIsOpen(false); router.push('/seace/notificaciones'); }}
+                            onClick={() => { onClose(); router.push('/seace/notificaciones'); }}
                             className="w-full text-center text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors"
                         >
                             Ver todas las notificaciones

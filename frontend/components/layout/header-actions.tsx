@@ -13,7 +13,10 @@ export function HeaderActions() {
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
     const [darkMode, setDarkMode] = useState(false);
-    const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+    // Unified Dropdown State (Mutual Exclusion)
+    const [activeDropdown, setActiveDropdown] = useState<'profile' | 'notifications' | null>(null);
+    const isProfileOpen = activeDropdown === 'profile';
 
     // Modal States
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
@@ -70,21 +73,25 @@ export function HeaderActions() {
                 {/* Dark Mode Toggle (Desktop) */}
                 <button
                     onClick={toggleTheme}
-                    className="hidden lg:flex w-12 h-12 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-gray-200 dark:border-slate-700 shadow-lg items-center justify-center text-slate-700 dark:text-blue-300 hover:bg-white dark:hover:bg-slate-800 transition-all hover:scale-110 active:scale-95 group"
+                    className="hidden lg:flex w-12 h-12 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-gray-200 dark:border-slate-700 shadow-lg items-center justify-center text-slate-700 dark:text-blue-300 hover:bg-white dark:hover:bg-slate-800 transition-all group"
                     title={darkMode ? "Cambiar a Modo Claro" : "Cambiar a Modo Oscuro"}
                 >
                     <i className={`fas ${darkMode ? 'fa-sun' : 'fa-moon'} text-xl transition-transform group-hover:rotate-12`}></i>
                 </button>
 
                 {/* Notifications (Desktop) */}
-                <div className="hidden lg:flex w-12 h-12 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-gray-200 dark:border-slate-700 shadow-lg items-center justify-center transition-all hover:scale-110 active:scale-95">
-                    <NotificationDropdown />
+                <div className="hidden lg:flex w-12 h-12 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-gray-200 dark:border-slate-700 shadow-lg items-center justify-center transition-all">
+                    <NotificationDropdown
+                        isOpen={activeDropdown === 'notifications'}
+                        onToggle={() => setActiveDropdown(activeDropdown === 'notifications' ? null : 'notifications')}
+                        onClose={() => setActiveDropdown(null)}
+                    />
                 </div>
 
                 {/* User Profile (Visible always) */}
                 <div className="relative">
                     <button
-                        onClick={() => setIsProfileOpen(!isProfileOpen)}
+                        onClick={() => setActiveDropdown(isProfileOpen ? null : 'profile')}
                         className="w-12 h-12 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-md border border-gray-200 dark:border-slate-700 shadow-lg flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-white dark:hover:bg-slate-800 transition-all hover:scale-110 active:scale-95 group p-0.5"
                     >
                         <div className="w-full h-full rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white text-lg font-bold shadow-md overflow-hidden">
@@ -98,7 +105,7 @@ export function HeaderActions() {
 
                     {/* Dropdown Menu */}
                     {isProfileOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                        <div className="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right z-[9999]">
                             <div className="p-4 border-b border-gray-100 dark:border-slate-700 bg-gray-50/50 dark:bg-slate-900/50">
                                 <p className="font-bold text-gray-900 dark:text-white mb-1">{user?.nombre || 'Usuario'}</p>
                                 <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">{user?.job_title || 'Sin cargo definido'}</p>
@@ -123,7 +130,7 @@ export function HeaderActions() {
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        setIsProfileOpen(false);
+                                        setActiveDropdown(null);
                                         setIsNotificationModalOpen(true);
                                     }}
                                     className="flex flex-col items-center gap-1 group"
@@ -139,7 +146,7 @@ export function HeaderActions() {
                             <div className="p-2">
                                 <button
                                     onClick={() => {
-                                        setIsProfileOpen(false);
+                                        setActiveDropdown(null);
                                         router.push('/profile');
                                     }}
                                     className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700/50 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-3 transition-colors"
@@ -151,7 +158,7 @@ export function HeaderActions() {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        setIsProfileOpen(false);
+                                        setActiveDropdown(null);
                                         setIsSettingsModalOpen(true);
                                     }}
                                     className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700/50 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-3 transition-colors"
@@ -163,7 +170,7 @@ export function HeaderActions() {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        setIsProfileOpen(false);
+                                        setActiveDropdown(null);
                                         setIsSupportModalOpen(true);
                                     }}
                                     className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-700/50 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-3 transition-colors"
@@ -176,7 +183,7 @@ export function HeaderActions() {
                                 <div className="h-px bg-gray-100 dark:bg-slate-700 my-1"></div>
                                 <button
                                     onClick={() => {
-                                        setIsProfileOpen(false);
+                                        setActiveDropdown(null);
                                         setIsLogoutModalOpen(true);
                                     }}
                                     className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-sm font-medium text-red-600 dark:text-red-400 flex items-center gap-3 transition-colors"

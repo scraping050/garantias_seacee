@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, Bell, Menu } from "lucide-react";
 import { EcommerceMetrics } from "@/components/ecommerce/EcommerceMetrics";
 import { DistributionRadialChart } from "@/components/ecommerce/DistributionRadialChart";
 
 import { SalesAreaChart } from "@/components/ecommerce/SalesAreaChart";
-import { DepartmentRanking } from "@/components/ecommerce/DepartmentRanking";
+import { PeruInteractiveMap } from "@/components/ecommerce/PeruInteractiveMap";
 import { FinancialEntitiesTable } from "@/components/ecommerce/FinancialEntitiesTable";
 
 export default function EcommerceDashboardPage() {
@@ -20,20 +19,24 @@ export default function EcommerceDashboardPage() {
     });
     const [loading, setLoading] = useState(true);
     const [selectedYear, setSelectedYear] = useState(2024);
+    const [filterDept, setFilterDept] = useState<string | null>(null);
+    const [provinceRanking, setProvinceRanking] = useState<any[]>([]);
 
     useEffect(() => {
         async function fetchData() {
             try {
                 const baseUrl = '/api/dashboard';
+                const deptParam = filterDept ? `&department=${encodeURIComponent(filterDept)}` : '';
 
                 // Fetch all endpoints in parallel
+                // UPDATED: Financial Entities now uses filters (Year + Dept)
                 const [kpis, dist, status, trend, dept, finance] = await Promise.all([
-                    fetch(`${baseUrl}/kpis`).then(r => r.json()),
-                    fetch(`${baseUrl}/distribution-by-type`).then(r => r.json()),
+                    fetch(`${baseUrl}/kpis?year=${selectedYear}`).then(r => r.json()),
+                    fetch(`${baseUrl}/distribution-by-type?year=${selectedYear}`).then(r => r.json()),
                     fetch(`${baseUrl}/stats-by-status`).then(r => r.json()),
                     fetch(`${baseUrl}/monthly-trend?year=${selectedYear}`).then(r => r.json()),
                     fetch(`${baseUrl}/department-ranking`).then(r => r.json()),
-                    fetch(`${baseUrl}/financial-entities-ranking`).then(r => r.json())
+                    fetch(`${baseUrl}/financial-entities-ranking?year=${selectedYear}${deptParam}`).then(r => r.json())
                 ]);
 
                 // Debug logging
@@ -69,7 +72,7 @@ export default function EcommerceDashboardPage() {
                     name: item.name,
                     garantias: item.count,
                     monto: item.amount,
-                    depts: "Varios",
+                    depts: `${item.dept_count || 0} Depts.`,
                     cobertura: "Nacional"
                 }));
 
@@ -106,7 +109,7 @@ export default function EcommerceDashboardPage() {
         }
 
         fetchData();
-    }, [selectedYear]);
+    }, [selectedYear, filterDept]);
 
     if (loading) {
         return (
@@ -119,24 +122,6 @@ export default function EcommerceDashboardPage() {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-[#0b122b] p-4 text-slate-800 dark:text-slate-200 font-sans fade-in transition-colors duration-300">
             <div className="mx-auto max-w-[1600px] space-y-6">
-
-                {/* Top Bar */}
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard Ecommerce</h1>
-                        <div className="relative hidden md:block">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                            <input
-                                type="text"
-                                placeholder="Buscar..."
-                                className="h-10 w-64 rounded-full bg-white dark:bg-[#111c44] pl-10 pr-4 text-sm text-slate-600 dark:text-slate-300 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 border border-slate-200 dark:border-transparent shadow-sm"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {/* Removed redundant Bell button */}
-                    </div>
-                </div>
 
                 {/* --- Main Dashboard Grid --- */}
                 <div className="space-y-6">
@@ -162,19 +147,41 @@ export default function EcommerceDashboardPage() {
 
                         {/* Right: Distribution (Radial) */}
                         <div className="lg:col-span-4 h-[500px]">
-                            <DistributionRadialChart data={data.distribution} />
+                            <DistributionRadialChart
+                                data={data.distribution}
+                                selectedYear={selectedYear}
+                                onYearChange={setSelectedYear}
+                            />
                         </div>
                     </div>
 
                     {/* ROW 3: Detailed Tables */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                        {/* Left: Department Ranking (Narrower) */}
-                        <div className="lg:col-span-4">
-                            <DepartmentRanking data={data.departmentRanking} />
+                        {/* Left: Peru Interactive Map (Narrower) */}
+                        <div className="lg:col-span-5">
+                            <PeruInteractiveMap
+                                data={data.departmentRanking}
+                                provinceData={provinceRanking}
+                                onDepartmentClick={async (deptName) => {
+                                    setFilterDept(deptName); // Update filter state to trigger useEffect
+                                    if (deptName) {
+                                        try {
+                                            const res = await fetch(`/api/dashboard/province-ranking?department=${encodeURIComponent(deptName)}`);
+                                            const json = await res.json();
+                                            setProvinceRanking(json.data || []);
+                                        } catch (e) {
+                                            console.error("Error fetching provinces", e);
+                                            setProvinceRanking([]);
+                                        }
+                                    } else {
+                                        setProvinceRanking([]);
+                                    }
+                                }}
+                            />
                         </div>
 
                         {/* Right: Financial Entities (Wider) */}
-                        <div className="lg:col-span-8">
+                        <div className="lg:col-span-7">
                             <FinancialEntitiesTable data={data.financialEntities} />
                         </div>
                     </div>

@@ -144,37 +144,12 @@ def get_all_filters(db: Session = Depends(get_db)):
                     if clean_p:
                         aseguradoras_set.add(clean_p)
         
-        # Normalization Logic
-        normalization_map = {
-            "SCOTIABANK": "SCOTIABANK",
-            "BBVA": "BBVA",
-            "CREDITO": "BCP",
-            "BCP": "BCP",
-            "INTERBANK": "INTERBANK",
-            "CESCE": "CESCE",
-            "MAPFRE": "MAPFRE",
-            "SECREX": "SECREX",
-            "POSITIVA": "LA POSITIVA",
-            "RIMAC": "RIMAC",
-            "INSUR": "INSUR",
-            "CRECER": "CRECER",
-            "AVLA": "AVLA",
-            "MUNDIAL": "MUNDIAL",
-            "LIBERTY": "LIBERTY",
-            "CITI": "CITIBANK",
-            "CHUBB": "CHUBB",
-            "CARDIF": "CARDIF",
-            "OH": "FINANCIERA OH",
-            "CONFIANZA": "FINANCIERA CONFIANZA"
-        }
+        # Normalization Logic using Shared Utility
+        from app.utils.normalization import normalize_insurer_name
         
         normalized_set = set()
         for name in aseguradoras_set:
-            mapped_name = name # Default to original
-            for key, canonical in normalization_map.items():
-                if key in name: 
-                    mapped_name = canonical
-                    break
+            mapped_name = normalize_insurer_name(name)
             normalized_set.add(mapped_name)
 
         aseguradoras = sorted(list(normalized_set))
@@ -241,7 +216,7 @@ def get_licitaciones(
         params = {}
         
         if search:
-            # Universal Search Logic
+            # Universal Search Logic - Comprehensive search across ALL relevant fields
             search_term = f"%{search.upper()}%"
             where_clauses.append("""
                 (
@@ -250,14 +225,22 @@ def get_licitaciones(
                     UPPER(descripcion) LIKE :search OR
                     UPPER(ocid) LIKE :search OR
                     UPPER(departamento) LIKE :search OR
+                    UPPER(provincia) LIKE :search OR
+                    UPPER(distrito) LIKE :search OR
                     UPPER(ubicacion_completa) LIKE :search OR
+                    UPPER(categoria) LIKE :search OR
+                    UPPER(tipo_procedimiento) LIKE :search OR
+                    UPPER(estado_proceso) LIKE :search OR
                     EXISTS (
                         SELECT 1 FROM licitaciones_adjudicaciones la 
                         WHERE la.id_convocatoria = licitaciones_cabecera.id_convocatoria 
                         AND (
                             UPPER(la.ganador_nombre) LIKE :search OR 
                             la.ganador_ruc LIKE :search OR 
-                            UPPER(la.entidad_financiera) LIKE :search
+                            UPPER(la.entidad_financiera) LIKE :search OR
+                            UPPER(la.tipo_garantia) LIKE :search OR
+                            UPPER(la.id_contrato) LIKE :search OR
+                            UPPER(la.estado_item) LIKE :search
                         )
                     )
                 )

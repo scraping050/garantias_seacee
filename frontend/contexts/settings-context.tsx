@@ -42,7 +42,7 @@ const defaultSettings: Settings = {
         security_alert: true,
     },
     security: {
-        autoLogout: '30m',
+        autoLogout: 'never',
     },
     regional: {
         dateFormat: 'DD/MM/YYYY',

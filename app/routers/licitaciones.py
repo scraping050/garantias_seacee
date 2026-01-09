@@ -64,14 +64,56 @@ def get_licitaciones(
     # Base query
     query = db.query(LicitacionesCabecera)
     
-    # Apply search filter
+    # Apply comprehensive search filter across ALL relevant fields
     if search:
         search_term = f"%{search}%"
+        
+        # LEFT OUTER JOIN with adjudicaciones to search in both tables
+        # This ensures we include licitaciones without adjudicaciones
+        query = query.outerjoin(LicitacionesCabecera.adjudicaciones)
+        adjudicacion_joined = True  # Mark that we've already joined
+        
         query = query.filter(
-            (LicitacionesCabecera.nomenclatura.like(search_term)) |
-            (LicitacionesCabecera.comprador.like(search_term)) |
-            (LicitacionesCabecera.descripcion.like(search_term)) |
-            (LicitacionesCabecera.ocid.like(search_term))
+            or_(
+                # === TABLA CABECERA ===
+                # IDs y Códigos únicos
+                LicitacionesCabecera.id_convocatoria.like(search_term),
+                LicitacionesCabecera.ocid.like(search_term),
+                LicitacionesCabecera.nomenclatura.like(search_term),
+                
+                # Descripciones y Entidades
+                LicitacionesCabecera.descripcion.like(search_term),
+                LicitacionesCabecera.comprador.like(search_term),
+                
+                # Categorías y Procesos
+                LicitacionesCabecera.categoria.like(search_term),
+                LicitacionesCabecera.tipo_procedimiento.like(search_term),
+                LicitacionesCabecera.estado_proceso.like(search_term),
+                
+                # Ubicación geográfica
+                LicitacionesCabecera.departamento.like(search_term),
+                LicitacionesCabecera.provincia.like(search_term),
+                LicitacionesCabecera.distrito.like(search_term),
+                LicitacionesCabecera.ubicacion_completa.like(search_term),
+                
+                # Datos financieros y origen
+                LicitacionesCabecera.moneda.like(search_term),
+                LicitacionesCabecera.archivo_origen.like(search_term),
+                
+                # === TABLA ADJUDICACIONES ===
+                # IDs de adjudicación y contrato
+                LicitacionesAdjudicaciones.id_adjudicacion.like(search_term),
+                LicitacionesAdjudicaciones.id_contrato.like(search_term),
+                
+                # Información del ganador
+                LicitacionesAdjudicaciones.ganador_nombre.like(search_term),
+                LicitacionesAdjudicaciones.ganador_ruc.like(search_term),
+                
+                # Garantías y entidades financieras
+                LicitacionesAdjudicaciones.entidad_financiera.like(search_term),
+                LicitacionesAdjudicaciones.tipo_garantia.like(search_term),
+                LicitacionesAdjudicaciones.estado_item.like(search_term),
+            )
         )
     
     # Simple filters
@@ -100,12 +142,15 @@ def get_licitaciones(
         query = query.filter(extract('month', LicitacionesCabecera.fecha_publicacion) == mes)
 
     # Filters requiring Join with Adjudicaciones
-    adjudicacion_joined = False
+    # Initialize flag (may be set to True by search filter above)
+    if 'adjudicacion_joined' not in locals():
+        adjudicacion_joined = False
     
     # Helper to ensure join only happens once
     def ensure_adj_join(q, joined):
         if not joined:
-            q = q.join(LicitacionesCabecera.adjudicaciones)
+            # Use outerjoin to include licitaciones without adjudicaciones
+            q = q.outerjoin(LicitacionesCabecera.adjudicaciones)
             return q, True
         return q, True
 

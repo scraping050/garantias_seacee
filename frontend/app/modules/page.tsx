@@ -4,11 +4,14 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserCog, LineChart, ChevronRight, User, ShieldCheck, ArrowLeft, ArrowRight, Lock } from 'lucide-react';
 import { HeaderActions } from '@/components/layout/header-actions';
+import { useAuthProtection } from '@/hooks/use-auth-protection';
 
 export default function ModulesPage() {
     const router = useRouter();
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [visible, setVisible] = useState(false);
+
+    const { isAuthenticated, loading } = useAuthProtection();
 
     useEffect(() => {
         setTimeout(() => setVisible(true), 50);
@@ -21,6 +24,8 @@ export default function ModulesPage() {
     const handleSEACEClick = () => {
         router.push('/seace/dashboard');
     };
+
+    if (loading || !isAuthenticated) return null;
 
     return (
         <div className={`min-h-screen w-full flex flex-col justify-center items-center relative overflow-hidden transition-all duration-1000 ${visible ? 'opacity-100' : 'opacity-0'}`}>

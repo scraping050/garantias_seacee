@@ -189,7 +189,7 @@ function BusquedaContent() {
             <div className="mx-auto max-w-7xl space-y-8">
 
                 {/* Main Filter Card */}
-                <div className="rounded-3xl bg-white shadow-sm border border-slate-200 dark:bg-[#111c44] dark:border-white/5 overflow-hidden">
+                <div className="rounded-3xl bg-white shadow-sm border border-slate-200 dark:bg-[#111c44] dark:border-white/5">
                     <div className="p-6 md:p-8">
 
                         {/* Header */}

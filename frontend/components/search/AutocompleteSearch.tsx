@@ -114,7 +114,7 @@ export const AutocompleteSearch: React.FC<AutocompleteSearchProps> = ({
                     <div className="text-[10px] uppercase font-bold text-slate-400 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 tracking-wider">
                         Sugerencias
                     </div>
-                    <ul>
+                    <ul className="max-h-[320px] overflow-y-auto">
                         {suggestions.map((item, idx) => (
                             <li
                                 key={idx}

@@ -42,6 +42,21 @@ export const LicitacionCard: React.FC<Props> = ({
     // FORMATTERS
     const formatDate = (dateString?: string) => {
         if (!dateString) return "N/A";
+        // Fix: Use simple string split to avoid timezone conversion issues
+        if (dateString.includes('T')) {
+            // If it has time, we might still want to be careful, but these are usually YYYY-MM-DD
+            const dateOnly = dateString.split('T')[0];
+            const [year, month, day] = dateOnly.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        // Assume YYYY-MM-DD
+        const [year, month, day] = dateString.split('-');
+        if (year && month && day) {
+            return `${day}/${month}/${year}`;
+        }
+
+        // Fallback for other formats
         return new Date(dateString).toLocaleDateString("es-PE", {
             day: "2-digit",
             month: "2-digit",
@@ -108,7 +123,7 @@ export const LicitacionCard: React.FC<Props> = ({
                 {guarantees.map((g, i) => (
                     <span key={i} className="flex items-center gap-1 bg-emerald-100 text-emerald-800 text-[10px] px-2 py-0.5 rounded font-bold">
                         <Building2 className="w-3 h-3" />
-                        {g.trim()}
+                        {g.trim().replace(/_/g, " ")}
                     </span>
                 ))}
             </div>

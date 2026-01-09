@@ -14,6 +14,7 @@ router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
 @router.get("/kpis")
 def get_dashboard_kpis(
+    year: Optional[int] = Query(None, description="Filter by year"),
     estado: Optional[str] = Query(None, description="Filter by estado_proceso"),
     tipo_procedimiento: Optional[str] = Query(None, description="Filter by tipo_procedimiento"),
     categoria: Optional[str] = Query(None, description="Filter by categoria"),
@@ -30,6 +31,9 @@ def get_dashboard_kpis(
         where_clauses = []
         params = {}
         
+        if year:
+            where_clauses.append("YEAR(fecha_publicacion) = :year")
+            params['year'] = year
         if estado:
             where_clauses.append("estado_proceso = :estado")
             params['estado'] = estado
@@ -163,17 +167,26 @@ def get_filter_options(db: Session = Depends(get_db)):
         tipos = db.execute(text("SELECT DISTINCT tipo_procedimiento FROM licitaciones_cabecera WHERE tipo_procedimiento IS NOT NULL AND tipo_procedimiento != '' ORDER BY tipo_procedimiento")).fetchall()
         
         # Aseguradoras (check if table exists or has data)
+        aseguradoras_list = []
         try:
-            aseguradoras = db.execute(text("SELECT DISTINCT entidad_financiera FROM licitaciones_adjudicaciones WHERE entidad_financiera IS NOT NULL AND entidad_financiera != '' ORDER BY entidad_financiera")).fetchall()
+            raw_aseguradoras = db.execute(text("SELECT DISTINCT entidad_financiera FROM licitaciones_adjudicaciones WHERE entidad_financiera IS NOT NULL AND entidad_financiera != ''")).fetchall()
+            
+            # Normalize list
+            from app.utils.normalization import normalize_insurer_name
+            norm_set = set()
+            for r in raw_aseguradoras:
+                norm_set.add(normalize_insurer_name(r[0]))
+            
+            aseguradoras_list = sorted(list(norm_set))
         except:
-            aseguradoras = []
+            aseguradoras_list = []
 
         return {
             "estados": [r[0] for r in estados],
             "objetos": [r[0] for r in categorias],
             "departamentos": [r[0] for r in deptos],
             "tipos_entidad": [r[0] for r in tipos],
-            "aseguradoras": [r[0] for r in aseguradoras]
+            "aseguradoras": aseguradoras_list
         }
     except Exception as e:
         print(f"Error getting filter options: {e}")
@@ -186,7 +199,7 @@ def get_filter_options(db: Session = Depends(get_db)):
         }
 
 @router.get("/distribution-by-type")
-def get_distribution_by_type(db: Session = Depends(get_db)):
+def get_distribution_by_type(year: int = 2024, db: Session = Depends(get_db)):
     try:
         sql = text("""
             SELECT 
@@ -195,10 +208,11 @@ def get_distribution_by_type(db: Session = Depends(get_db)):
                 COALESCE(SUM(monto_estimado), 0) as amount
             FROM licitaciones_cabecera
             WHERE categoria IS NOT NULL AND categoria != ''
+            AND YEAR(fecha_publicacion) = :year
             GROUP BY categoria
             ORDER BY value DESC
         """)
-        result = db.execute(sql).fetchall()
+        result = db.execute(sql, {"year": year}).fetchall()
         data = [{"name": row[0], "value": row[1], "amount": float(row[2])} for row in result]
         return {"data": data}
     except Exception as e:
@@ -264,7 +278,6 @@ def get_department_ranking(db: Session = Depends(get_db)):
             WHERE departamento IS NOT NULL AND departamento != ''
             GROUP BY departamento
             ORDER BY count DESC
-            LIMIT 10
         """)
         result = db.execute(sql).fetchall()
         data = [{"name": row[0], "count": row[1], "amount": float(row[2])} for row in result]
@@ -273,45 +286,112 @@ def get_department_ranking(db: Session = Depends(get_db)):
         return {"data": [], "error": str(e)}
 
 @router.get("/financial-entities-ranking")
-def get_financial_entities_ranking(db: Session = Depends(get_db)):
+@router.get("/financial-entities-ranking")
+def get_financial_entities_ranking(
+    year: int = 2024,
+    department: Optional[str] = Query(None, description="Filter by department"),
+    db: Session = Depends(get_db)
+):
     try:
-        # Use licitaciones_adjudicaciones for entities (Insurers) if available
-        # OR licitaciones_cabecera 'comprador' (Entities buying) if preferred?
-        # The name "Financial Entities" implies Insurers.
+        # Build SQL with filters
+        # We need to JOIN with licitaciones_cabecera to filter by Year/Department if using adjudicaciones
+        
+        where_clauses = ["YEAR(c.fecha_publicacion) = :year"]
+        params = {"year": year}
+        
+        if department:
+            where_clauses.append("c.departamento = :department")
+            params["department"] = department
+
+        where_sql = " AND ".join(where_clauses)
+
+        # Primary Query: Entidad Financiera (Insurers) from Adjudicaciones
+        # Note: We rely on the fact that licitaciones_adjudicaciones has id_convocatoria matching cabecera
+        sql = text(f"""
+            SELECT 
+                a.entidad_financiera as name,
+                c.departamento,
+                COUNT(*) as count,
+                COALESCE(SUM(a.monto_adjudicado), 0) as amount
+            FROM licitaciones_adjudicaciones a
+            JOIN licitaciones_cabecera c ON a.id_convocatoria = c.id_convocatoria
+            WHERE a.entidad_financiera IS NOT NULL 
+              AND a.entidad_financiera != '' 
+              AND a.entidad_financiera != 'SIN_GARANTIA'
+              AND a.entidad_financiera != 'ERROR_API_500'
+              AND {where_sql}
+            GROUP BY a.entidad_financiera, c.departamento
+            ORDER BY amount DESC
+            LIMIT 5000
+        """)
+        
+        result = db.execute(sql, params).fetchall()
+        
+        # Apply Normalization to match Search Filters
+        from app.utils.normalization import normalize_insurer_name
+
+        # Aggregate counts by normalized name
+        aggregated = {}
+        for row in result:
+            raw_name = row[0]
+            dept = row[1]
+            count = row[2]
+            amount = float(row[3])
+            
+            if not raw_name: continue
+            
+            # Normalize
+            normalized_name = normalize_insurer_name(raw_name)
+            
+            if normalized_name not in aggregated:
+                aggregated[normalized_name] = {
+                    "count": 0, 
+                    "amount": 0.0, 
+                    "depts": set()
+                }
+            
+            aggregated[normalized_name]["count"] += count
+            aggregated[normalized_name]["amount"] += amount
+            if dept:
+                aggregated[normalized_name]["depts"].add(dept)
+
+        # Convert back to list and sort
+        data = [
+            {
+                "name": k, 
+                "count": v["count"], 
+                "amount": v["amount"],
+                "dept_count": len(v["depts"])
+            } 
+            for k, v in aggregated.items()
+        ]
+        data.sort(key=lambda x: x["count"], reverse=True)
+        # Removed data[:10] slice to allow frontend to control view limit
+
+        if not data:
+            data = []
+
+        return {"data": data}
+    except Exception as e:
+         return {"data": [], "error": str(e)}
+
+@router.get("/province-ranking")
+def get_province_ranking(department: str = Query(..., description="Department name"), db: Session = Depends(get_db)):
+    try:
         sql = text("""
             SELECT 
-                entidad_financiera as name,
+                provincia as name,
                 COUNT(*) as count,
-                COALESCE(SUM(monto_adjudicado), 0) as amount
-            FROM licitaciones_adjudicaciones
-            WHERE entidad_financiera IS NOT NULL 
-              AND entidad_financiera != '' 
-              AND entidad_financiera != 'SIN_GARANTIA'
-              AND entidad_financiera != 'ERROR_API_500'
-            GROUP BY entidad_financiera
+                COALESCE(SUM(monto_estimado), 0) as amount
+            FROM licitaciones_cabecera
+            WHERE departamento = :department 
+              AND provincia IS NOT NULL 
+              AND provincia != ''
+            GROUP BY provincia
             ORDER BY count DESC
-            LIMIT 10
         """)
-        result = db.execute(sql).fetchall()
+        result = db.execute(sql, {"department": department}).fetchall()
         data = [{"name": row[0], "count": row[1], "amount": float(row[2])} for row in result]
         return {"data": data}
     except Exception as e:
-         # Fallback to Comprador if Adjudicaciones is empty or fails
-        try:
-             sql_fallback = text("""
-                SELECT 
-                    comprador as name,
-                    COUNT(*) as count,
-                    COALESCE(SUM(monto_estimado), 0) as amount
-                FROM licitaciones_cabecera
-                WHERE comprador IS NOT NULL AND comprador != ''
-                GROUP BY comprador
-                ORDER BY count DESC
-                LIMIT 10
-            """)
-             result = db.execute(sql_fallback).fetchall()
-             data = [{"name": row[0], "count": row[1], "amount": float(row[2])} for row in result]
-             return {"data": data}
-        except:
-            return {"data": [], "error": str(e)}
-
+        return {"data": [], "error": str(e)}

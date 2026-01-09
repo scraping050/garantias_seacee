@@ -149,6 +149,16 @@ body {
   /* Chrome, Safari and Opera */
 }
 
+/* TailAdmin Scrollbar - No Scrollbar (Clean Design) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 /* Font Smoothing for Crispness */
 body {
   -webkit-font-smoothing: antialiased;

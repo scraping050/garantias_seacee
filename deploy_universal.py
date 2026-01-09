@@ -1,15 +1,13 @@
 
 import paramiko
+import time
 
 HOST = "72.61.219.79"
 USER = "root"
-PASS = "Mcqs123456789#"
+PASS = "Juegos1234567#"
 
-TARGET_ROOTS = [
-    "/home/mcqs-jcq-back/htdocs",
-    "/home/mcqs-jcq-front/htdocs",
-    "/home/mcqs-jcq/htdocs"
-]
+TARGET_ROOT = "/home/mcqs-jcq/htdocs/mcqs-jcq.com"
+REPO_URL = "https://github.com/scraping050/garantias_seacee.git"
 
 def run_cmd(ssh, cmd, cwd):
     print(f"\n[EXEC @ {cwd}] {cmd}")
@@ -19,60 +17,62 @@ def run_cmd(ssh, cmd, cwd):
     # Wait for completion
     exit_status = stdout.channel.recv_exit_status()
     
-    out = stdout.read().decode().strip()
-    err = stderr.read().decode().strip()
+    out = stdout.read().decode('utf-8', errors='replace').strip()
+    err = stderr.read().decode('utf-8', errors='replace').strip()
     
-    if out: print(out)
-    if err: print(f"ERR: {err}")
+    # Sanitize for Windows Console printing
+    def safe_print(text):
+        try:
+            print(text)
+        except UnicodeEncodeError:
+            print(text.encode('ascii', 'replace').decode('ascii'))
+            
+    if out: safe_print(out)
+    if err: safe_print(f"ERR: {err}")
     return exit_status == 0
-
-def check_file(ssh, filepath):
-    stdin, stdout, stderr = ssh.exec_command(f"test -f {filepath} && echo YES")
-    return stdout.read().decode().strip() == "YES"
 
 def check_dir(ssh, dirpath):
     stdin, stdout, stderr = ssh.exec_command(f"test -d {dirpath} && echo YES")
     return stdout.read().decode().strip() == "YES"
 
-def deploy(ssh, root):
-    print(f"\n=== INSPECTING {root} ===")
+def ensure_git_repo(ssh, root):
+    run_cmd(ssh, "git remote -v", root) # Debug remote
     
-    if not check_dir(ssh, root):
-        print("Directory does not exist. Skipping.")
-        return
-
-    # 1. Update Code (if Git)
     if check_dir(ssh, f"{root}/.git"):
-        print("Found Git repo. Pulling...")
-        run_cmd(ssh, "git pull origin main", root)
+        print("Git repo exists. Fetching...")
+        run_cmd(ssh, "git fetch origin", root)
     else:
-        print("Not a git repo.")
+        print("Initializing Git repo...")
+        # Create dir if not exists (though it should)
+        run_cmd(ssh, "git init", root)
+        run_cmd(ssh, f"git remote add origin {REPO_URL}", root)
+        run_cmd(ssh, "git fetch origin", root)
 
-    # 2. Check for Backend (Python)
-    if check_file(ssh, f"{root}/requirements.txt"):
-        print("Found requirements.txt. Updating Backend...")
-        # Check venv
-        if check_dir(ssh, f"{root}/venv"):
-             run_cmd(ssh, "source venv/bin/activate && pip install -r requirements.txt", root)
-        else:
-             run_cmd(ssh, "pip install -r requirements.txt", root)
-        
-        # Restart Backend
-        run_cmd(ssh, "pm2 restart api-garantias || pm2 restart fastapi || systemctl restart fastapi", root)
+    # Force reset to match main
+    print("Resetting to origin/main...")
+    run_cmd(ssh, "git reset --hard origin/main", root)
 
-    # 3. Check for Frontend (Node/Next)
-    # Could be in root or in /frontend subdir
-    frontend_roots = [root]
-    if check_dir(ssh, f"{root}/frontend"):
-        frontend_roots.append(f"{root}/frontend")
+def deploy(ssh, root):
+    print(f"\n=== DEPLOYING TO {root} ===")
+    
+    # 1. Sync Code
+    ensure_git_repo(ssh, root)
 
-    for fr in frontend_roots:
-        if check_file(ssh, f"{fr}/package.json"):
-            print(f"Found package.json in {fr}. Updating Frontend...")
-            run_cmd(ssh, "npm install", fr)
-            run_cmd(ssh, "npm run build", fr)
-            # Restart Frontend
-            run_cmd(ssh, "pm2 restart mcqs-web || pm2 restart nextjs || pm2 restart all", fr)
+    # 2. Backend
+    if run_cmd(ssh, "test -f requirements.txt", root):
+        print("Updating Backend...")
+        run_cmd(ssh, "pip install -r requirements.txt", root)
+        # Restart Backend (assuming PM2 name, adjust if needed)
+        run_cmd(ssh, "pm2 restart api-garantias || pm2 restart fastapi", root)
+
+    # 3. Frontend
+    frontend_path = f"{root}/frontend"
+    if check_dir(ssh, frontend_path):
+        print("Updating Frontend...")
+        run_cmd(ssh, "npm install", frontend_path)
+        run_cmd(ssh, "npm run build", frontend_path)
+        # Restart Frontend
+        run_cmd(ssh, "pm2 restart mcqs-web || pm2 restart nextjs", frontend_path)
 
 def main():
     try:
@@ -81,15 +81,10 @@ def main():
         ssh.connect(HOST, username=USER, password=PASS)
         print("Connected.")
 
-        for root in TARGET_ROOTS:
-            try:
-                deploy(ssh, root)
-            except Exception as e:
-                print(f"Error deploying {root}: {e}")
-
-        # Final cleanup/restart to be sure
-        print("\n--- Final PM2 Reload ---")
-        run_cmd(ssh, "pm2 reload all", "/root")
+        deploy(ssh, TARGET_ROOT)
+        
+        print("\n--- Final PM2 Status ---")
+        run_cmd(ssh, "pm2 list", "/root")
         
         ssh.close()
         print("\nDeployment Complete.")

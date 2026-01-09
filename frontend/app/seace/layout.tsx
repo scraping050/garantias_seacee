@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { HeaderActions } from '@/components/layout/header-actions';
 import ChatbotWidget from '@/components/chatbot/ChatbotWidget';
+import { useAuthProtection } from '@/hooks/use-auth-protection';
 
 export default function SEACELayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -26,6 +27,12 @@ export default function SEACELayout({ children }: { children: React.ReactNode })
 
     const isActive = (path: string) => pathname === path;
     const getDelay = (index: number) => `${index * 50}ms`;
+
+    const { isAuthenticated, loading } = useAuthProtection();
+
+    if (loading || !isAuthenticated) {
+        return null; // Or a loading spinner
+    }
 
     return (
         <div className="block lg:flex w-full h-screen overflow-hidden bg-white dark:bg-gray-900 transition-colors duration-500">
@@ -52,10 +59,14 @@ export default function SEACELayout({ children }: { children: React.ReactNode })
             >
                 {/* Header - Logo */}
                 <div className="h-[90px] flex items-center justify-between px-6 relative">
-                    <div className={`transition-all duration-500 flex items-center justify-center gap-3 ${collapsed ? 'opacity-0 w-0' : 'opacity-100 flex-1'}`}>
-                        <span className="font-bold text-2xl tracking-tight text-white font-sans drop-shadow-md whitespace-nowrap">
-                            SEACE <span className="font-light text-blue-200 text-xl">3.0</span>
-                        </span>
+                    <div className={`transition-all duration-500 flex items-center justify-center w-full ${collapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
+                        {/* Texto MQS - JCQ Estilizado */}
+                        <div className="relative group cursor-default">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-400 to-cyan-300 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                            <span className="relative font-black text-2xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.3)]">
+                                MQS - JCQ
+                            </span>
+                        </div>
                     </div>
 
                     <button

@@ -6,8 +6,15 @@ import { HeaderActions } from '@/components/layout/header-actions';
 import { HelpCircle, Mail, FileText, ChevronDown, ChevronUp, Send, Download, Phone, MessageCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 
+import { useAuthProtection } from '@/hooks/use-auth-protection';
+
 export default function SupportPage() {
+    const { isAuthenticated, loading: authLoading } = useAuthProtection();
     const router = useRouter();
+    const [activeTab, setActiveTab] = useState('tickets');
+    const [loading, setLoading] = useState(false);
+
+    if (authLoading || !isAuthenticated) return null;
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500">
