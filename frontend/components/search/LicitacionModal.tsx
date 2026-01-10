@@ -14,6 +14,10 @@ interface LicitacionModalProps {
     departamentosOptions?: string[];
 }
 
+import { licitacionService } from '@/lib/services/licitacionService';
+
+// ... (existing imports)
+
 export default function LicitacionModal({
     isOpen,
     onClose,
@@ -40,13 +44,12 @@ export default function LicitacionModal({
     // Cascading: Load Provincias when Departamento changes
     useEffect(() => {
         const fetchProvincias = async () => {
-            setFormData(prev => ({ ...prev, provincia: '', distrito: '' }));
+            // Only clear if user changed dept, not on initial load if we want to preserve? 
+            // Actually, if dept changes, prov MUST change.
             setProvinciaOptions([]);
-            setDistritoOptions([]);
 
             if (formData.departamento && formData.departamento.trim() !== '') {
                 try {
-                    const { licitacionService } = await import('@/lib/services/licitacionService');
                     const data = await licitacionService.getLocations(formData.departamento);
                     setProvinciaOptions(data.provincias || []);
                 } catch (error) {
@@ -60,12 +63,10 @@ export default function LicitacionModal({
     // Cascading: Load Distritos when Provincia changes
     useEffect(() => {
         const fetchDistritos = async () => {
-            setFormData(prev => ({ ...prev, distrito: '' }));
             setDistritoOptions([]);
 
             if (formData.provincia && formData.provincia.trim() !== '' && formData.departamento && formData.departamento.trim() !== '') {
                 try {
-                    const { licitacionService } = await import('@/lib/services/licitacionService');
                     const data = await licitacionService.getLocations(formData.departamento, formData.provincia);
                     setDistritoOptions(data.distritos || []);
                 } catch (error) {
@@ -202,7 +203,7 @@ export default function LicitacionModal({
 
                         {/* ===== GENERAL INFO TAB ===== */}
                         {activeTab === 'general' && (
-                            <div className="space-y-8 animate-in fade-in duration-300">
+                            <div className="space-y-8">
 
                                 {/* SECTION 1: IDENTIFICACIÓN */}
                                 <div className="space-y-4">
@@ -282,8 +283,6 @@ export default function LicitacionModal({
                                             >
                                                 <option value="">Seleccionar...</option>
                                                 <option value="Licitacion Publica">Licitación Pública</option>
-                                                <option value="Adjudicacion Simplificada">Adjudicación Simplificada</option>
-                                                <option value="Concurso Publico">Concurso Público</option>
                                             </select>
                                         </div>
                                         <div className="space-y-1.5">
@@ -297,7 +296,6 @@ export default function LicitacionModal({
                                                 <option value="BIENES">BIENES</option>
                                                 <option value="SERVICIOS">SERVICIOS</option>
                                                 <option value="OBRAS">OBRAS</option>
-                                                <option value="CONSULTORÍA">CONSULTORÍA</option>
                                             </select>
                                         </div>
                                         <div className="space-y-1.5">
@@ -340,34 +338,45 @@ export default function LicitacionModal({
                                         <div className="grid grid-cols-1 gap-4">
                                             <div className="space-y-1.5">
                                                 <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Departamento</label>
-                                                <input
-                                                    type="text"
+                                                <select
                                                     className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                                     value={formData.departamento || ''}
-                                                    onChange={(e) => setFormData({ ...formData, departamento: e.target.value.toUpperCase() })}
-                                                    placeholder="Ej: LIMA"
-                                                />
+                                                    onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
+                                                >
+                                                    <option value="">Seleccionar...</option>
+                                                    {departamentosOptions.map((dept, i) => (
+                                                        <option key={i} value={dept}>{dept}</option>
+                                                    ))}
+                                                </select>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1.5">
                                                     <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Provincia</label>
-                                                    <input
-                                                        type="text"
-                                                        className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                    <select
+                                                        className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                                         value={formData.provincia || ''}
                                                         onChange={(e) => setFormData({ ...formData, provincia: e.target.value.toUpperCase() })}
-                                                        placeholder="Ej: LIMA"
-                                                    />
+                                                        disabled={!formData.departamento || provinciaOptions.length === 0}
+                                                    >
+                                                        <option value="">Seleccionar...</option>
+                                                        {provinciaOptions.map((prov, i) => (
+                                                            <option key={i} value={prov}>{prov}</option>
+                                                        ))}
+                                                    </select>
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Distrito</label>
-                                                    <input
-                                                        type="text"
-                                                        className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                                    <select
+                                                        className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                                                         value={formData.distrito || ''}
                                                         onChange={(e) => setFormData({ ...formData, distrito: e.target.value.toUpperCase() })}
-                                                        placeholder="Ej: MIRAFLORES"
-                                                    />
+                                                        disabled={!formData.provincia || distritoOptions.length === 0}
+                                                    >
+                                                        <option value="">Seleccionar...</option>
+                                                        {distritoOptions.map((dist, i) => (
+                                                            <option key={i} value={dist}>{dist}</option>
+                                                        ))}
+                                                    </select>
                                                 </div>
                                             </div>
                                         </div>
@@ -487,9 +496,9 @@ export default function LicitacionModal({
                                                         setFormData({ ...formData, adjudicaciones: newAdj });
                                                     }}
                                                 >
-                                                    <option value="ADJUDICADO">ADJUDICADO</option>
                                                     <option value="CONTRATADO">CONTRATADO</option>
-                                                    <option value="PENDIENTE">PENDIENTE</option>
+                                                    <option value="CONSENTIDO">CONSENTIDO</option>
+                                                    <option value="ADJUDICADO">ADJUDICADO</option>
                                                 </select>
                                             </div>
 
@@ -519,9 +528,8 @@ export default function LicitacionModal({
                                                     }}
                                                 >
                                                     <option value="">Seleccionar...</option>
-                                                    <option value="Carta Fianza">Carta Fianza</option>
-                                                    <option value="Poliza de Caucion">Póliza de Caución</option>
-                                                    <option value="Deposito a Plazo">Depósito a Plazo</option>
+                                                    <option value="GARANTIA_BANCARIA">Garantía Bancaria</option>
+                                                    <option value="RETENCION">Retención</option>
                                                 </select>
                                             </div>
 

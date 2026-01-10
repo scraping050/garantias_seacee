@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
 @router.get("/kpis")
 def get_dashboard_kpis(
-    year: Optional[int] = Query(None, description="Filter by year"),
+    year: Optional[int] = Query(None, description="Filter by year. 0 or None for All."),
     estado: Optional[str] = Query(None, description="Filter by estado_proceso"),
     tipo_procedimiento: Optional[str] = Query(None, description="Filter by tipo_procedimiento"),
     categoria: Optional[str] = Query(None, description="Filter by categoria"),
@@ -23,7 +23,6 @@ def get_dashboard_kpis(
 ):
     """
     Get dashboard KPIs using data from licitaciones_cabecera.
-    Since licitaciones_adjudicaciones is empty, we use monto_estimado from cabecera.
     """
     
     try:
@@ -31,7 +30,7 @@ def get_dashboard_kpis(
         where_clauses = []
         params = {}
         
-        if year:
+        if year and year > 0:
             where_clauses.append("YEAR(fecha_publicacion) = :year")
             params['year'] = year
         if estado:
@@ -201,18 +200,20 @@ def get_filter_options(db: Session = Depends(get_db)):
 @router.get("/distribution-by-type")
 def get_distribution_by_type(year: int = 2024, db: Session = Depends(get_db)):
     try:
-        sql = text("""
+        year_filter = "AND YEAR(fecha_publicacion) = :year" if year > 0 else ""
+        sql = text(f"""
             SELECT 
                 categoria as name,
                 COUNT(*) as value,
                 COALESCE(SUM(monto_estimado), 0) as amount
             FROM licitaciones_cabecera
             WHERE categoria IS NOT NULL AND categoria != ''
-            AND YEAR(fecha_publicacion) = :year
+            {year_filter}
             GROUP BY categoria
             ORDER BY value DESC
         """)
-        result = db.execute(sql, {"year": year}).fetchall()
+        params = {"year": year} if year > 0 else {}
+        result = db.execute(sql, params).fetchall()
         data = [{"name": row[0], "value": row[1], "amount": float(row[2])} for row in result]
         return {"data": data}
     except Exception as e:
@@ -239,17 +240,23 @@ def get_stats_by_status(db: Session = Depends(get_db)):
 @router.get("/monthly-trend")
 def get_monthly_trend(year: int = 2024, db: Session = Depends(get_db)):
     try:
-        sql = text("""
+        # If year > 0, filter by specific year. If 0 (All), average or sum by month across years?
+        # Requirement says "All" shows total. So likely sum of all Januaries, all Februaries, etc.
+        year_filter = "WHERE YEAR(fecha_publicacion) = :year" if year > 0 else ""
+        
+        sql = text(f"""
             SELECT 
                 MONTH(fecha_publicacion) as mes,
                 COUNT(*) as count,
                 COALESCE(SUM(monto_estimado), 0) as amount
             FROM licitaciones_cabecera
-            WHERE YEAR(fecha_publicacion) = :year
+            {year_filter}
             GROUP BY MONTH(fecha_publicacion)
             ORDER BY mes
         """)
-        result = db.execute(sql, {"year": year}).fetchall()
+        
+        params = {"year": year} if year > 0 else {}
+        result = db.execute(sql, params).fetchall()
         
         months = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
         data = []
@@ -267,25 +274,31 @@ def get_monthly_trend(year: int = 2024, db: Session = Depends(get_db)):
         return {"data": [], "error": str(e)}
 
 @router.get("/department-ranking")
-def get_department_ranking(db: Session = Depends(get_db)):
+def get_department_ranking(year: int = 2024, db: Session = Depends(get_db)):
     try:
-        sql = text("""
+        print(f"DEBUG: get_department_ranking called with year={year}")
+        where_year = "AND EXTRACT(YEAR FROM fecha_publicacion) = :year" if year > 0 else ""
+        print(f"DEBUG: where_year clause: {where_year}")
+        
+        sql = text(f"""
             SELECT 
                 departamento as name,
                 COUNT(*) as count,
                 COALESCE(SUM(monto_estimado), 0) as amount
             FROM licitaciones_cabecera
             WHERE departamento IS NOT NULL AND departamento != ''
+            {where_year}
             GROUP BY departamento
             ORDER BY count DESC
         """)
-        result = db.execute(sql).fetchall()
+        
+        params = {"year": year} if year > 0 else {}
+        result = db.execute(sql, params).fetchall()
         data = [{"name": row[0], "count": row[1], "amount": float(row[2])} for row in result]
         return {"data": data}
     except Exception as e:
         return {"data": [], "error": str(e)}
 
-@router.get("/financial-entities-ranking")
 @router.get("/financial-entities-ranking")
 def get_financial_entities_ranking(
     year: int = 2024,
@@ -294,16 +307,18 @@ def get_financial_entities_ranking(
 ):
     try:
         # Build SQL with filters
-        # We need to JOIN with licitaciones_cabecera to filter by Year/Department if using adjudicaciones
+        where_clauses = []
+        params = {}
         
-        where_clauses = ["YEAR(c.fecha_publicacion) = :year"]
-        params = {"year": year}
-        
+        if year > 0:
+            where_clauses.append("EXTRACT(YEAR FROM c.fecha_publicacion) = :year")
+            params["year"] = year
+            
         if department:
             where_clauses.append("c.departamento = :department")
             params["department"] = department
 
-        where_sql = " AND ".join(where_clauses)
+        where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
 
         # Primary Query: Entidad Financiera (Insurers) from Adjudicaciones
         # Note: We rely on the fact that licitaciones_adjudicaciones has id_convocatoria matching cabecera
@@ -322,7 +337,7 @@ def get_financial_entities_ranking(
               AND {where_sql}
             GROUP BY a.entidad_financiera, c.departamento
             ORDER BY amount DESC
-            LIMIT 5000
+            LIMIT 500
         """)
         
         result = db.execute(sql, params).fetchall()
@@ -376,9 +391,15 @@ def get_financial_entities_ranking(
          return {"data": [], "error": str(e)}
 
 @router.get("/province-ranking")
-def get_province_ranking(department: str = Query(..., description="Department name"), db: Session = Depends(get_db)):
+def get_province_ranking(
+    department: str = Query(..., description="Department name"), 
+    year: int = 2024,
+    db: Session = Depends(get_db)
+):
     try:
-        sql = text("""
+        where_year = "AND YEAR(fecha_publicacion) = :year" if year > 0 else ""
+        
+        sql = text(f"""
             SELECT 
                 provincia as name,
                 COUNT(*) as count,
@@ -387,10 +408,16 @@ def get_province_ranking(department: str = Query(..., description="Department na
             WHERE departamento = :department 
               AND provincia IS NOT NULL 
               AND provincia != ''
+              {where_year}
             GROUP BY provincia
             ORDER BY count DESC
         """)
-        result = db.execute(sql, {"department": department}).fetchall()
+        
+        params = {"department": department}
+        if year > 0:
+            params["year"] = year
+            
+        result = db.execute(sql, params).fetchall()
         data = [{"name": row[0], "count": row[1], "amount": float(row[2])} for row in result]
         return {"data": data}
     except Exception as e:

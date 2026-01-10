@@ -3,6 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { ApexOptions } from "apexcharts";
+import { YearSelector } from "@/components/dashboard/YearSelector";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -120,18 +121,11 @@ export const SalesAreaChart: React.FC<SalesAreaChartProps> = ({ data = [], selec
                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Total de licitaciones por mes</p>
                 </div>
                 <div className="flex bg-slate-50 dark:bg-slate-800 rounded-lg p-1">
-                    {years.map(year => (
-                        <button
-                            key={year}
-                            onClick={() => onYearChange(year)}
-                            className={`min-w-[50px] px-3 py-1 text-xs font-bold rounded-md transition-all ${selectedYear === year
-                                ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5 dark:bg-[#111c44] dark:text-white dark:ring-white/10'
-                                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                                }`}
-                        >
-                            {year}
-                        </button>
-                    ))}
+                    <YearSelector
+                        selectedYear={selectedYear}
+                        onYearChange={onYearChange}
+                        allowAll={true}
+                    />
                 </div>
             </div>
             <div className="flex-1 w-full -ml-2 min-h-0 relative">
@@ -140,3 +134,4 @@ export const SalesAreaChart: React.FC<SalesAreaChartProps> = ({ data = [], selec
         </div>
     );
 };
+
