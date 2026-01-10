@@ -267,9 +267,19 @@ def create_licitacion(
     """
     Create a new tender.
     """
+    # Generate ubicacion_completa from parts
+    ubicacion_parts = []
+    if licitacion.departamento:
+        ubicacion_parts.append(licitacion.departamento)
+    if licitacion.provincia:
+        ubicacion_parts.append(licitacion.provincia)
+    if licitacion.distrito:
+        ubicacion_parts.append(licitacion.distrito)
+    ubicacion_completa = " - ".join(ubicacion_parts) if ubicacion_parts else None
+    
     # Create header
-    new_licitacion = LicitacionCabecera(
-        id_convocatoria=str(int(datetime.now().timestamp())), # Simple ID generation
+    new_licitacion = LicitacionesCabecera(
+        id_convocatoria=str(int(datetime.now().timestamp())),  # Simple ID generation
         nomenclatura=licitacion.nomenclatura,
         ocid=licitacion.ocid,
         descripcion=licitacion.descripcion,
@@ -283,12 +293,52 @@ def create_licitacion(
         departamento=licitacion.departamento,
         provincia=licitacion.provincia,
         distrito=licitacion.distrito,
-        fecha_ultima_actualizacion=date.today()
+        ubicacion_completa=ubicacion_completa,
+        fecha_carga=datetime.now(),
+        last_update=datetime.now()
     )
     
     db.add(new_licitacion)
     db.commit()
     db.refresh(new_licitacion)
+    
+    # Create adjudicaciones if provided
+    if licitacion.adjudicaciones:
+        from app.models.seace import LicitacionesAdjudicaciones, DetalleConsorcios
+        
+        for adj_data in licitacion.adjudicaciones:
+            # Generate unique ID for adjudication
+            adj_id = f"{new_licitacion.id_convocatoria}-ADJ-{int(datetime.now().timestamp())}"
+            
+            # Create adjudication
+            new_adj = LicitacionesAdjudicaciones(
+                id_adjudicacion=adj_id,
+                id_convocatoria=new_licitacion.id_convocatoria,
+                id_contrato=getattr(adj_data, 'id_contrato', None),
+                ganador_nombre=adj_data.ganador_nombre,
+                ganador_ruc=adj_data.ganador_ruc,
+                monto_adjudicado=adj_data.monto_adjudicado,
+                fecha_adjudicacion=adj_data.fecha_adjudicacion,
+                estado_item=adj_data.estado_item,
+                tipo_garantia=getattr(adj_data, 'tipo_garantia', None),
+                entidad_financiera=adj_data.entidad_financiera
+            )
+            db.add(new_adj)
+            db.commit()
+            db.refresh(new_adj)
+            
+            # Create consorcios if provided
+            if hasattr(adj_data, 'consorcios') and adj_data.consorcios:
+                for consorcio_data in adj_data.consorcios:
+                    new_consorcio = DetalleConsorcios(
+                        id_contrato=new_adj.id_contrato or adj_id,
+                        ruc_miembro=consorcio_data.get('ruc'),
+                        nombre_miembro=consorcio_data.get('nombre'),
+                        porcentaje_participacion=consorcio_data.get('porcentaje', 0)
+                    )
+                    db.add(new_consorcio)
+                
+                db.commit()
     
     return new_licitacion
 
@@ -320,10 +370,95 @@ def update_licitacion(
     old_estado = existing_licitacion.estado_proceso
     new_estado = update_data.get('estado_proceso')
     
-    for key, value in update_data.items():
-        setattr(existing_licitacion, key, value)
+    # Update ubicacion_completa if location fields changed
+    if any(key in update_data for key in ['departamento', 'provincia', 'distrito']):
+        dept = update_data.get('departamento', existing_licitacion.departamento)
+        prov = update_data.get('provincia', existing_licitacion.provincia)
+        dist = update_data.get('distrito', existing_licitacion.distrito)
+        
+        ubicacion_parts = []
+        if dept:
+            ubicacion_parts.append(dept)
+        if prov:
+            ubicacion_parts.append(prov)
+        if dist:
+            ubicacion_parts.append(dist)
+        
+        update_data['ubicacion_completa'] = " - ".join(ubicacion_parts) if ubicacion_parts else None
     
-    existing_licitacion.fecha_ultima_actualizacion = date.today()
+    for key, value in update_data.items():
+        if key != 'adjudicaciones':
+            setattr(existing_licitacion, key, value)
+    
+    existing_licitacion.last_update = datetime.now()
+    
+    # Handle nested adjudicaciones update
+    if licitacion.adjudicaciones is not None:
+        from app.models.seace import LicitacionesAdjudicaciones, DetalleConsorcios
+        
+        # 1. Find existing adjudications to clean up associated consorcios
+        existing_adjs = db.query(LicitacionesAdjudicaciones).filter(
+            LicitacionesAdjudicaciones.id_convocatoria == id_convocatoria
+        ).all()
+        
+        # Collect IDs used for linking consorcios
+        ids_to_clean = []
+        for adj in existing_adjs:
+            if adj.id_contrato:
+                ids_to_clean.append(adj.id_contrato)
+            # Also check if id_adjudicacion was used as key
+            ids_to_clean.append(adj.id_adjudicacion)
+        
+        # 2. Delete existing consorcios
+        if ids_to_clean:
+            db.query(DetalleConsorcios).filter(
+                DetalleConsorcios.id_contrato.in_(ids_to_clean)
+            ).delete(synchronize_session=False)
+            
+        # 3. Delete existing adjudications
+        db.query(LicitacionesAdjudicaciones).filter(
+            LicitacionesAdjudicaciones.id_convocatoria == id_convocatoria
+        ).delete(synchronize_session=False)
+        
+        # 4. Create new adjudications and consorcios
+        for adj_data in licitacion.adjudicaciones:
+            # Generate unique ID for adjudication
+            # Add index to ensure uniqueness in loop
+            adj_id = f"{id_convocatoria}-ADJ-{int(datetime.now().timestamp())}-{licitacion.adjudicaciones.index(adj_data)}"
+            
+            # Use provided id_contrato or defaults to None
+            contrato_id_val = getattr(adj_data, 'id_contrato', None)
+            
+            # Create adjudication
+            new_adj = LicitacionesAdjudicaciones(
+                id_adjudicacion=adj_id,
+                id_convocatoria=id_convocatoria,
+                id_contrato=contrato_id_val,
+                ganador_nombre=adj_data.ganador_nombre,
+                ganador_ruc=adj_data.ganador_ruc,
+                monto_adjudicado=adj_data.monto_adjudicado,
+                fecha_adjudicacion=adj_data.fecha_adjudicacion,
+                estado_item=adj_data.estado_item,
+                tipo_garantia=getattr(adj_data, 'tipo_garantia', None),
+                entidad_financiera=adj_data.entidad_financiera
+            )
+            db.add(new_adj)
+            db.flush() # Ensure ID is available
+            
+            # Create consorcios if provided
+            if hasattr(adj_data, 'consorcios') and adj_data.consorcios:
+                # Key to link consorcios: id_contrato if exists, else id_adjudicacion
+                link_id = contrato_id_val if contrato_id_val else adj_id
+                
+                for consorcio_data in adj_data.consorcios:
+                    new_consorcio = DetalleConsorcios(
+                        id_contrato=link_id,
+                        ruc_miembro=consorcio_data.get('ruc'),
+                        nombre_miembro=consorcio_data.get('nombre'),
+                        porcentaje_participacion=consorcio_data.get('porcentaje', 0),
+                        fecha_registro=datetime.now()
+                    )
+                    db.add(new_consorcio)
     
     db.commit()
     db.refresh(existing_licitacion)

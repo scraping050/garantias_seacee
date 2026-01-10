@@ -147,7 +147,7 @@ export default function NotificationDropdown({ isOpen, onToggle, onClose }: Noti
                                                     {!n.is_read && (
                                                         <button
                                                             onClick={(e) => { e.stopPropagation(); markAsRead(n.id); }}
-                                                            className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 dark:text-blue-400 shrink-0"
                                                         >
                                                             Marcar
                                                         </button>
@@ -178,7 +178,7 @@ export default function NotificationDropdown({ isOpen, onToggle, onClose }: Noti
                                                     </span>
                                                     {n.link && (
                                                         <button
-                                                            onClick={() => handleNotificationClick(n)}
+                                                            onClick={() => { onClose(); router.push('/seace/notificaciones?tab=unread'); }}
                                                             className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
                                                         >
                                                             Ver <i className="fas fa-chevron-right text-[9px]"></i>
@@ -196,7 +196,7 @@ export default function NotificationDropdown({ isOpen, onToggle, onClose }: Noti
                     {/* Footer Clean */}
                     <div className="p-3 border-t border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
                         <button
-                            onClick={() => { onClose(); router.push('/seace/notificaciones'); }}
+                            onClick={() => { onClose(); router.push('/seace/notificaciones?tab=all'); }}
                             className="w-full text-center text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-colors"
                         >
                             Ver todas las notificaciones

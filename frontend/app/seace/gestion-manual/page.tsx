@@ -575,9 +575,10 @@ export default function GestionManualPage() {
                     onClose={() => setIsModalOpen(false)}
                     licitacion={selectedLicitacion}
                     onSave={handleValidSave}
-                    aseguradorasOptions={filterOptions.aseguradoras}
-                    tipoGarantiaOptions={filterOptions.tipos_garantia}
                     estadosOptions={filterOptions.estados}
+                    tipoGarantiaOptions={filterOptions.tipos_garantia}
+                    aseguradorasOptions={filterOptions.aseguradoras}
+                    departamentosOptions={filterOptions.departamentos}
                 />
 
                 <DeleteLicitacionModal

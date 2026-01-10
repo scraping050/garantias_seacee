@@ -64,12 +64,15 @@ class LicitacionCabeceraSchema(BaseModel):
 
 class AdjudicacionCreate(BaseModel):
     """Schema for creating an adjudication."""
+    id_contrato: Optional[str] = None
     ganador_nombre: str
     ganador_ruc: str
     monto_adjudicado: Decimal
     fecha_adjudicacion: date
     estado_item: str = 'Adjudicado'
+    tipo_garantia: Optional[str] = None
     entidad_financiera: Optional[str] = None
+    consorcios: List[Dict[str, Any]] = []
 
 
 class LicitacionCreate(BaseModel):
@@ -92,10 +95,12 @@ class LicitacionCreate(BaseModel):
 
 class LicitacionUpdate(BaseModel):
     """Schema for updating an existing tender."""
+    ocid: Optional[str] = None
     nomenclatura: Optional[str] = None
     descripcion: Optional[str] = None
     comprador: Optional[str] = None
     categoria: Optional[str] = None
+    tipo_procedimiento: Optional[str] = None
     monto_estimado: Optional[Decimal] = None
     moneda: Optional[str] = None
     fecha_publicacion: Optional[date] = None
@@ -103,6 +108,8 @@ class LicitacionUpdate(BaseModel):
     departamento: Optional[str] = None
     provincia: Optional[str] = None
     distrito: Optional[str] = None
+    ubicacion_completa: Optional[str] = None
+    adjudicaciones: Optional[List[AdjudicacionCreate]] = None
 
 
 class LicitacionListSchema(BaseModel):

@@ -5,7 +5,7 @@ echo ========================================
 echo.
 
 echo [1/2] Iniciando Backend FastAPI...
-start "SEACE Backend" cmd /k "cd /d C:\laragon\www\BRAYAN\proyecto_garantias && call .\venv_new\Scripts\activate.bat && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "SEACE Backend" cmd /k "cd /d C:\laragon\www\BRAYAN\proyecto_garantias && call .\venv\Scripts\activate.bat && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 
 timeout /t 3 /nobreak >nul
 

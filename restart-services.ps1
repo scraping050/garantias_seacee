@@ -10,13 +10,13 @@ Write-Host "[1/4] Deteniendo servicios anteriores..." -ForegroundColor Yellow
 function Kill-Port ($port) {
     $processes = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique
     if ($processes) {
-        foreach ($pid in $processes) {
+        foreach ($processId in $processes) {
             try {
-                Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
-                Write-Host " -> Proceso en puerto $port (PID: $pid) detenido." -ForegroundColor Red
+                Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+                Write-Host " -> Proceso en puerto $port (PID: $processId) detenido." -ForegroundColor Red
             }
             catch {
-                Write-Host " -> No se pudo detener PID $pid en puerto $port." -ForegroundColor DarkGray
+                Write-Host " -> No se pudo detener PID $processId en puerto $port." -ForegroundColor DarkGray
             }
         }
     }
@@ -58,12 +58,9 @@ Write-Host ""
 
 # 3. Iniciar Backend FastAPI
 Write-Host "[3/4] Iniciando Backend FastAPI..." -ForegroundColor Yellow
-$backendPath = "C:\laragon\www\BRAYAN\proyecto_garantias"  # Update path match user env
+$backendPath = "C:\laragon\www\BRAYAN\proyecto_garantias"
 if (-not (Test-Path $backendPath)) {
-    $backendPath = "C:\laragon\www\proyecto_garantias"
-    if (-not (Test-Path $backendPath)) {
-        $backendPath = $PSScriptRoot
-    }
+    $backendPath = $PSScriptRoot
 }
 
 Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendPath'; if (Test-Path 'venv\Scripts\Activate.ps1') { .\venv\Scripts\Activate.ps1 } else { Write-Host 'Venv not found' }; uvicorn app.main:app --reload --host 0.0.0.0 --port 8000" -WindowStyle Normal

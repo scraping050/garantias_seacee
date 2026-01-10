@@ -1,1 +1,78 @@
-[]
+[
+    {
+        "id": 4,
+        "user_id": 1,
+        "type": "licitacion",
+        "priority": "low",
+        "title": "Nueva Licitaci\u00f3n Creada",
+        "message": "Se ha registrado una nueva licitaci\u00f3n: Test...",
+        "link": "/seace/search?id=dfc6870b-1742-405c-a61c-019720f64343",
+        "metadata": {},
+        "is_read": false,
+        "created_at": "2026-01-09T17:48:39",
+        "expires_at": null
+    },
+    {
+        "id": 3,
+        "user_id": 1,
+        "type": "licitacion",
+        "priority": "medium",
+        "title": "Cambio de Estado: 70f755b9-0403-4f96-b8e6-b0b3ee34b8ad",
+        "message": "Estado cambiado: CANCELADO -> CONTRATADO",
+        "link": "/seace/busqueda?q=70f755b9-0403-4f96-b8e6-b0b3ee34b8ad",
+        "metadata": {
+            "categoria": "BIENES",
+            "ubicacion": " -  - ",
+            "monto": 0.0,
+            "orcid": "70f755b9-0403-4f96-b8e6-b0b3ee34b8ad",
+            "estadoAnterior": "CANCELADO",
+            "estadoNuevo": "CONTRATADO",
+            "licitacionId": "70f755b9-0403-4f96-b8e6-b0b3ee34b8ad"
+        },
+        "is_read": true,
+        "created_at": "2026-01-09T15:09:29",
+        "expires_at": null
+    },
+    {
+        "id": 2,
+        "user_id": 1,
+        "type": "licitacion",
+        "priority": "medium",
+        "title": "Cambio de Estado: 70f755b9-0403-4f96-b8e6-b0b3ee34b8ad",
+        "message": "Estado cambiado: DESIERTO -> CANCELADO",
+        "link": "/seace/busqueda?q=70f755b9-0403-4f96-b8e6-b0b3ee34b8ad",
+        "metadata": {
+            "categoria": "BIENES",
+            "ubicacion": " -  - ",
+            "monto": 0.0,
+            "orcid": "70f755b9-0403-4f96-b8e6-b0b3ee34b8ad",
+            "estadoAnterior": "DESIERTO",
+            "estadoNuevo": "CANCELADO",
+            "licitacionId": "70f755b9-0403-4f96-b8e6-b0b3ee34b8ad"
+        },
+        "is_read": true,
+        "created_at": "2026-01-09T15:07:53",
+        "expires_at": null
+    },
+    {
+        "id": 1,
+        "user_id": 1,
+        "type": "licitacion",
+        "priority": "medium",
+        "title": "Cambio de Estado: 70f755b9-0403-4f96-b8e6-b0b3ee34b8ad",
+        "message": "Estado cambiado: ADJUDICADO -> DESIERTO",
+        "link": "/seace/busqueda?q=70f755b9-0403-4f96-b8e6-b0b3ee34b8ad",
+        "metadata": {
+            "categoria": "BIENES",
+            "ubicacion": " -  - ",
+            "monto": 0.0,
+            "orcid": "70f755b9-0403-4f96-b8e6-b0b3ee34b8ad",
+            "estadoAnterior": "ADJUDICADO",
+            "estadoNuevo": "DESIERTO",
+            "licitacionId": "70f755b9-0403-4f96-b8e6-b0b3ee34b8ad"
+        },
+        "is_read": true,
+        "created_at": "2026-01-09T15:00:13",
+        "expires_at": null
+    }
+]

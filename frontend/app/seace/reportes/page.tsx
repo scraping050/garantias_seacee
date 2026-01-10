@@ -663,7 +663,7 @@ export default function GeneradorReportesPage() {
 
                             {/* Pagination */}
                             {totalPages > 1 && (
-                                <div className="flex justify-center pt-8 pb-4">
+                                <div className="flex justify-center pt-10 pb-6">
                                     <nav className="flex items-center gap-6" aria-label="Pagination">
                                         <button
                                             onClick={() => fetchResultados(Math.max(1, currentPage - 1))}
@@ -671,7 +671,7 @@ export default function GeneradorReportesPage() {
                                             className="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors disabled:opacity-30 disabled:pointer-events-none"
                                         >
                                             <div className="p-2 rounded-full group-hover:bg-slate-100 dark:group-hover:bg-white/5 transition-colors">
-                                                <ChevronDown className="h-4 w-4 rotate-90" />
+                                                <ChevronUp className="h-4 w-4 -rotate-90" />
                                             </div>
                                             <span className="hidden sm:inline">Anterior</span>
                                         </button>

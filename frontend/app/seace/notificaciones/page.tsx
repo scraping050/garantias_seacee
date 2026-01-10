@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import {
     Bell,
@@ -16,8 +16,25 @@ import {
 import { type Notificacion, type EstadoLicitacion } from "@/types/notificacion";
 import { useNotifications } from "@/hooks/use-notifications"; // Import hook
 
-export default function NotificacionesPage() {
-    const [filter, setFilter] = useState<'TODOS' | 'NO_LEIDOS' | 'LEIDOS'>('NO_LEIDOS');
+import { useSearchParams } from "next/navigation";
+
+function NotificacionesPageContent() {
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get('tab');
+
+    const getInitialFilter = () => {
+        if (tabParam === 'all') return 'TODOS';
+        if (tabParam === 'unread') return 'NO_LEIDOS';
+        if (tabParam === 'read') return 'LEIDOS';
+        return 'NO_LEIDOS'; // Default
+    };
+
+    const [filter, setFilter] = useState<'TODOS' | 'NO_LEIDOS' | 'LEIDOS'>(getInitialFilter());
+
+    // Update filter if URL changes
+    React.useEffect(() => {
+        setFilter(getInitialFilter());
+    }, [tabParam]);
 
     // Use the real hook
     const {
@@ -168,16 +185,18 @@ export default function NotificacionesPage() {
                                         </div>
                                         <div className="space-y-1">
                                             <h3 className="text-sm font-bold text-slate-800 dark:text-white leading-snug">
-                                                {notif.titulo}
+                                                {notif.estadoNuevo ? `Cambio de Estado: ${notif.estadoNuevo}` : notif.titulo}
                                             </h3>
                                             <p className="text-xs text-slate-500 line-clamp-2 dark:text-slate-400">
-                                                {notif.mensaje}
+                                                {notif.mensaje || notif.titulo /* Fallback if title was used for header */}
                                             </p>
 
                                             {notif.orcid && (
-                                                <Link href={`/seace/busqueda/${notif.licitacionId}`} className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:underline mt-1">
-                                                    Ver Orcid: {notif.orcid}
-                                                </Link>
+                                                <div className="mt-1">
+                                                    <Link href={`/seace/busqueda/${notif.licitacionId}`} className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:underline">
+                                                        Ver Orcid: {notif.orcid} <i className="fas fa-chevron-right text-[9px]"></i>
+                                                    </Link>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -199,10 +218,16 @@ export default function NotificacionesPage() {
                                     </div>
 
                                     {/* Cambio de Estado */}
-                                    <div className="col-span-3 flex items-center justify-center gap-3 mb-4 md:mb-0">
-                                        {getStatusBadge(notif.estadoAnterior)}
+                                    <div className="col-span-3 flex items-center justify-center gap-4 mb-4 md:mb-0 text-[10px] font-bold uppercase tracking-wide">
+                                        <span className="text-slate-400">{notif.estadoAnterior || '-'}</span>
                                         <ArrowRight className="w-3 h-3 text-slate-300" />
-                                        {getStatusBadge(notif.estadoNuevo)}
+                                        <span className={
+                                            notif.estadoNuevo === 'CONTRATADO' || notif.estadoNuevo === 'ADJUDICADO' ? 'text-emerald-500' :
+                                                notif.estadoNuevo === 'NULO' || notif.estadoNuevo === 'DESIERTO' ? 'text-red-500' :
+                                                    'text-slate-600 dark:text-slate-300'
+                                        }>
+                                            {notif.estadoNuevo || '-'}
+                                        </span>
                                     </div>
 
                                     {/* Fecha */}
@@ -251,5 +276,14 @@ export default function NotificacionesPage() {
 
             </div>
         </div>
+    );
+}
+
+// Wrap in Suspense to handle useSearchParams
+export default function NotificacionesPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-slate-50 dark:bg-[#0b122b] flex items-center justify-center"><p className="text-slate-500">Cargando...</p></div>}>
+            <NotificacionesPageContent />
+        </Suspense>
     );
 }
