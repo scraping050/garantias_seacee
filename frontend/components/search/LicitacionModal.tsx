@@ -277,22 +277,27 @@ export default function LicitacionModal({
                                             <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Tipo Procedimiento</label>
                                             <select
                                                 className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                                                value={formData.tipo_procedimiento || 'Licitacion Publica'}
+                                                value={formData.tipo_procedimiento || ''}
                                                 onChange={(e) => setFormData({ ...formData, tipo_procedimiento: e.target.value })}
                                             >
+                                                <option value="">Seleccionar...</option>
                                                 <option value="Licitacion Publica">Licitación Pública</option>
+                                                <option value="Adjudicacion Simplificada">Adjudicación Simplificada</option>
+                                                <option value="Concurso Publico">Concurso Público</option>
                                             </select>
                                         </div>
                                         <div className="space-y-1.5">
                                             <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Categoría</label>
                                             <select
                                                 className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
-                                                value={formData.categoria || 'BIENES'}
+                                                value={formData.categoria || ''}
                                                 onChange={(e) => setFormData({ ...formData, categoria: e.target.value })}
                                             >
+                                                <option value="">Seleccionar...</option>
                                                 <option value="BIENES">BIENES</option>
-                                                <option value="OBRAS">OBRAS</option>
                                                 <option value="SERVICIOS">SERVICIOS</option>
+                                                <option value="OBRAS">OBRAS</option>
+                                                <option value="CONSULTORÍA">CONSULTORÍA</option>
                                             </select>
                                         </div>
                                         <div className="space-y-1.5">
@@ -335,45 +340,34 @@ export default function LicitacionModal({
                                         <div className="grid grid-cols-1 gap-4">
                                             <div className="space-y-1.5">
                                                 <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Departamento</label>
-                                                <select
+                                                <input
+                                                    type="text"
                                                     className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                                     value={formData.departamento || ''}
-                                                    onChange={(e) => setFormData({ ...formData, departamento: e.target.value })}
-                                                >
-                                                    <option value="">Seleccionar departamento...</option>
-                                                    {departamentosOptions.map((dept, i) => (
-                                                        <option key={i} value={dept}>{dept}</option>
-                                                    ))}
-                                                </select>
+                                                    onChange={(e) => setFormData({ ...formData, departamento: e.target.value.toUpperCase() })}
+                                                    placeholder="Ej: LIMA"
+                                                />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1.5">
                                                     <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Provincia</label>
-                                                    <select
-                                                        className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    <input
+                                                        type="text"
+                                                        className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                                         value={formData.provincia || ''}
-                                                        onChange={(e) => setFormData({ ...formData, provincia: e.target.value })}
-                                                        disabled={!formData.departamento || provinciaOptions.length === 0}
-                                                    >
-                                                        <option value="">Seleccionar provincia...</option>
-                                                        {provinciaOptions.map((prov, i) => (
-                                                            <option key={i} value={prov}>{prov}</option>
-                                                        ))}
-                                                    </select>
+                                                        onChange={(e) => setFormData({ ...formData, provincia: e.target.value.toUpperCase() })}
+                                                        placeholder="Ej: LIMA"
+                                                    />
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <label className="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Distrito</label>
-                                                    <select
-                                                        className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    <input
+                                                        type="text"
+                                                        className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                                         value={formData.distrito || ''}
-                                                        onChange={(e) => setFormData({ ...formData, distrito: e.target.value })}
-                                                        disabled={!formData.provincia || distritoOptions.length === 0}
-                                                    >
-                                                        <option value="">Seleccionar distrito...</option>
-                                                        {distritoOptions.map((dist, i) => (
-                                                            <option key={i} value={dist}>{dist}</option>
-                                                        ))}
-                                                    </select>
+                                                        onChange={(e) => setFormData({ ...formData, distrito: e.target.value.toUpperCase() })}
+                                                        placeholder="Ej: MIRAFLORES"
+                                                    />
                                                 </div>
                                             </div>
                                         </div>
@@ -525,8 +519,9 @@ export default function LicitacionModal({
                                                     }}
                                                 >
                                                     <option value="">Seleccionar...</option>
-                                                    <option value="GARANTIA_BANCARIA">Garantía Bancaria</option>
-                                                    <option value="RETENCION">Retención</option>
+                                                    <option value="Carta Fianza">Carta Fianza</option>
+                                                    <option value="Poliza de Caucion">Póliza de Caución</option>
+                                                    <option value="Deposito a Plazo">Depósito a Plazo</option>
                                                 </select>
                                             </div>
 
@@ -545,7 +540,8 @@ export default function LicitacionModal({
                                             </div>
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-bold text-slate-500 uppercase">Garantía / Banco</label>
-                                                <select
+                                                <input
+                                                    placeholder="Ej: BCP"
                                                     className="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                                                     value={adj.entidad_financiera}
                                                     onChange={(e) => {
@@ -553,12 +549,7 @@ export default function LicitacionModal({
                                                         newAdj[index].entidad_financiera = e.target.value;
                                                         setFormData({ ...formData, adjudicaciones: newAdj });
                                                     }}
-                                                >
-                                                    <option value="">Seleccionar...</option>
-                                                    {aseguradorasOptions.map((opt, i) => (
-                                                        <option key={i} value={opt}>{opt}</option>
-                                                    ))}
-                                                </select>
+                                                />
                                             </div>
 
                                         </div>
