@@ -10,9 +10,6 @@ import { useAuthProtection } from '@/hooks/use-auth-protection';
 
 export default function MQSLayout({ children }: { children: React.ReactNode }) {
     const { isAuthenticated, loading } = useAuthProtection();
-
-    if (loading || !isAuthenticated) return null;
-
     const router = useRouter();
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
@@ -38,21 +35,11 @@ export default function MQSLayout({ children }: { children: React.ReactNode }) {
         }
     }, [router]);
 
-    const toggleTheme = () => {
-        const newMode = !darkMode;
-        setDarkMode(newMode);
-        if (newMode) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        }
-    };
-
     useEffect(() => {
         setMobileMenuOpen(false);
     }, [pathname]);
+
+    if (loading || !isAuthenticated) return null;
 
     const isActive = (path: string) => pathname === path;
     const isAdmin = user?.role === 'admin';

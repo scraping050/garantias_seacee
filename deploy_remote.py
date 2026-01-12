@@ -6,8 +6,9 @@ import sys
 # Configuration
 HOST = "72.61.219.79"
 USER = "root"
-PASS = "Mcqs123456789#"
+PASS = "Juegos1234567#"
 PROJECT_PATHS = [
+    "/home/mcqs-jcq/htdocs/mcqs-jcq.com",
     "/www/wwwroot/mcqs-jcq.com",
     "/home/mcqs-jcq/public_html"
 ]
